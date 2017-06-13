@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: grapevine-foundation
+Description: Grapevine helper class library set
+Version: 2.0
+Libs: -L${libdir} -lpng -lsigc-2.0 -lGLESv2 -lEGL -lX11
+Cflags: -I${includedir} -I/usr/local/include/Grapevine -std=c++11
+Requires:

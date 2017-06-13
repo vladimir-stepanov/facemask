@@ -1,0 +1,10 @@
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">AR Camera</string>
+    <string name="request_permission">This sample needs camera permission.</string>
+    <string name="camera_error">This device does not support Camera2 API.</string>
+    <string name="initialising_engine">Initialising face recognition engine…</string>
+    <string name="face_recognition_time">Face recognition time: %d mSec</string>
+    <string name="camera_preview_frame_rate">Camera preview frame rate: %.2f fps</string>
+    <string name="mouth_open">Mouth \"open\": %.2f</string>
+    <string name="preview_size">Preview size: <xliff:g id="width">%d</xliff:g>x<xliff:g id="height">%d</xliff:g>px</string>
+</resources>

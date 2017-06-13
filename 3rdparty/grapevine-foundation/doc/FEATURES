@@ -1,0 +1,56 @@
+FEATURES
+========
+
+Future ideas
+ - Soft-body physics Integration
+ - Skeletal animation
+ - Audio API
+ - Scripting (AngelScript/Squirrel/LUA/JavaScript)
+ - Some "Privates" could be named to be "Referenced"
+ - Some non-privates could be straightly inherited from ReferencedPointer
+
+v2.0 (on-going)
+ - Vector and bitmap font available as extension
+ - C++11 support
+ - Meta bariables and binding (js like "ad-hoc" functions)
+ - JS bindings
+ 
+v1.2
+ - Input's to SceneExtensions
+ - Extend the current vector font implementation to separate library
+
+v1.1
+ - Box based culler for simple application scenes
+ - Performance updates
+
+v1.0
+ - Rearrange algorithm
+ - Omnilight API
+ - Device orientation API
+ - Removed Bullet physics (physics will be a separate library always in future)
+
+v0.0.6
+ - Scene + SceneExtensions, new extendable scene API and default extensions
+ - Animation API, LinearPath, BezierPath + Easing curves to Math
+ - State Machine
+ - Arrange API for grids
+ - DynamicMesh to create bendable rectangular meshes
+
+v0.0.5
+ - Physics rigid integration
+ - IPC classes
+ - Automatic shader selection based on material
+
+v0.0.4
+ - specular, bumpmap, cube map reflection
+ - dynamic texture
+
+v0.0.3
+ - 3ds max FBX to barrel convert tool: single mesh FBX to .barrel format exporter
+ - GPU shader based font engine (kaski, .ttf load)
+
+v0.0.2
+ - RAII C++ scenegraph
+
+v0.0.1
+ - .3ds, .png format loading

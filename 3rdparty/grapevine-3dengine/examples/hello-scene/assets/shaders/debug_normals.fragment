@@ -1,0 +1,12 @@
+// PRECISION
+precision highp int;
+precision highp float;
+
+// IN from vertex shader
+varying vec3 nNormal;
+varying vec2 TextureCoord; // not used
+
+void main (void)
+{
+    gl_FragColor = vec4((nNormal.x + 1.0) / 2.0, (nNormal.y + 1.0) / 2.0, (nNormal.z + 1.0) / 2.0, 1.0);
+}

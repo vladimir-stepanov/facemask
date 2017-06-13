@@ -1,0 +1,35 @@
+
+attribute mediump vec4 a_position;
+attribute mediump vec3 a_texcoord;
+attribute mediump float a_offset;
+
+varying mediump vec3 v_texcoord;
+
+uniform mediump float u_base_offset;
+uniform mediump mat4 ModelViewProjectionMatrix;
+//uniform mediump vec2 u_position;
+//uniform mediump float u_scale;
+
+uniform mediump vec4 u_transform[MAX_MATRICES * 3];
+
+mat4 unpack_transform(float offset)
+{
+    int baseIndex = int(offset);
+    vec4 m0 = u_transform[baseIndex + 0];
+    vec4 m1 = u_transform[baseIndex + 1];
+    vec4 m2 = u_transform[baseIndex + 2];
+    return mat4(m0, m1, m2, vec4(0.0, 0.0, 0.0, 1.0));
+}
+
+void main()
+{
+    v_texcoord = a_texcoord;
+
+    vec4 pos = vec4(a_position.xy, 0.0, 1.0);
+    mat4 tm = unpack_transform(a_offset - u_base_offset);
+    
+    pos = pos * tm;
+    pos = ModelViewProjectionMatrix * pos;
+    //pos.y = -pos.y;
+    gl_Position = pos;
+}

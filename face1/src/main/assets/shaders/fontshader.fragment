@@ -1,0 +1,44 @@
+#ifdef GL_OES_standard_derivatives
+    #extension GL_OES_standard_derivatives : enable
+#endif
+
+varying mediump vec3 v_texcoord;
+uniform mediump float Opacity;
+uniform mediump vec4 u_color;
+
+void main()
+{
+    mediump vec3 p = v_texcoord;
+    mediump float s = v_texcoord.z;
+    mediump vec4 color = u_color;
+
+    #ifdef GL_OES_standard_derivatives
+        mediump vec3 px = dFdx(v_texcoord);
+        mediump vec3 py = dFdy(v_texcoord);
+        mediump float fx = (2.0*p.x)*px.x - px.y;
+        mediump float fy = (2.0*p.x)*py.x - py.y;
+        mediump float sd = s * (p.x*p.x - p.y)/sqrt(fx*fx + fy*fy);
+
+        // To count the "sd" value with the second way
+        //float sd = s * (p.x*p.x - p.y)/(abs(fx) + abs(fy));
+        //float sd = s * (p.x*p.x - p.y)/max(abs(fx), abs(fy));
+        mediump float alpha = clamp(0.5 - sd, 0.0, 1.0);
+        color.a *= alpha;
+
+        // For debugging
+        /*if (alpha > 1.0)
+            color = vec4(0,0,0,1);
+        else if (alpha < 0.0)
+            color = vec4(0,0,0,0);
+        else
+            color = vec4(0,0,0,alpha);*/
+
+    #else
+        mediump float sign = s * (p.y - p.x * p.x);
+        if (sign < 0.0)
+            color.a = 0.0;
+
+    #endif
+    color.a *= Opacity;
+    gl_FragColor = color;
+}

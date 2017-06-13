@@ -1,0 +1,7 @@
+barrel
+======
+Barrel is a converter for Autodesk's FBX format. It converts FBX (.fbx) to grapevine's format (.barrel).
+
+author
+======
+Antti Peuhkurinen (peuhkura@gmail.com)

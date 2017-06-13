@@ -1,0 +1,2 @@
+To compile this example, run next:
+$ autoreconf -i; ./configure; make

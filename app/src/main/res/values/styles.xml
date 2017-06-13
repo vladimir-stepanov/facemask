@@ -1,0 +1,7 @@
+<resources>
+
+    <style name="ThemeNoActionBarFullscreen" parent="android:Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+
+</resources>

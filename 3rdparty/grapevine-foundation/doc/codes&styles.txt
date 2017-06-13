@@ -1,0 +1,32 @@
+Codes & Styles
+==============
+
+# Abstract classes
+ - Place "Abstract" in the front of the name of the class.
+ - Place Constructor and Destructor to protected side.
+
+
+# Uncopyable & unassignable
+Inherit from Uncopyable class found under Grapevine/Core/
+
+
+# PIMPL
+The desclare the private part use "class YourClass* private_" in the header
+file. Core/Class.hpp has some helper defines to make it more clear that we are
+using the PIMPL. These defines are CREATE_PRIVATE and FREE_PRIVATE. Use them
+like next:
+
+CREATE_PRIVATE(your class Constructor(parameter1, parameter2, ...)) to create
+    private_ variable.
+
+FREE_PRIVATE in the destructor to free the created private_ variable
+
+
+# Header only classes
+If the class is dead simple, for example simple base getter setter class, you
+can do it as header only class (no .cpp file)
+
+
+# Mutex and Lock
+Use mutex_ variable name for Mutex class if possible. Then you can use LOCK
+define to lock the code block.

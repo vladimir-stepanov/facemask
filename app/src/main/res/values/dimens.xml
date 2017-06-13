@@ -1,0 +1,7 @@
+<resources>
+    <dimen name="top_panel_text_size">18sp</dimen>
+    <dimen name="panel_padding">4dp</dimen>
+    <dimen name="nav_bar_height">48dp</dimen>
+    <dimen name="footer_panel_padding">12dp</dimen>
+    <integer name="animation_duration">200</integer>
+</resources>

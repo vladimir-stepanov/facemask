@@ -1,0 +1,24 @@
+grapevine
+=========
+
+Copyright (C) 2013-2014 Huawei Technologies Finland Oy.
+
+This is unpublished work.
+
+author: antti.peuhkurinen@huawei.com
+
+License: read COPYING file.
+Install: read INSTALL file.
+
+folders explained
+=================
+/doc:       documentation and figures related to grapevine
+/include    headers of public interface
+/src        source code and internal headers
+/examples   separate projects - examples from grapevine usage
+/android    android related build files (needs also grapevine-android-libpng to compile)
+/tools      separate projects - tools
+
+author
+======
+Antti Peuhkurinen (antti.peuhkurinen@huawei.com)

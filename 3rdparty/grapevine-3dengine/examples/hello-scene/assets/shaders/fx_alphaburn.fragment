@@ -1,0 +1,55 @@
+// PRECISION
+precision highp float;
+
+// IN from vertex shader
+varying vec2 TextureCoord;
+varying vec3 nNormal;
+
+// IN from textures
+uniform highp sampler2D ColorMap;
+
+// IN from renderer
+uniform float Opacity;
+uniform float Highlight;
+uniform vec2 AlphaBurnCenter;
+uniform float AlphaBurnRadius;
+uniform float AlphaBurnGradientWidth;
+
+// Lights
+uniform highp vec3 nDiffuseLight;
+uniform highp vec3 nSpecularLight;
+uniform highp vec3 LightColorAmbient;
+uniform highp vec3 LightColorDiffuse;
+uniform highp vec3 LightColorSpecular;
+uniform highp vec3 OmniLightColor;  // <- NEW
+
+// Constants
+const float pi = 3.14159;
+
+void main (void)
+{
+    vec4 colorSample = texture2D(ColorMap, TextureCoord);
+    float distance = distance(TextureCoord, AlphaBurnCenter);
+    float gradientStart = AlphaBurnRadius - AlphaBurnGradientWidth;
+
+    // Reflection for specular lightning
+    vec3 nReflect = normalize(-reflect(nSpecularLight, nNormal)); // Dummy line, TODO: remove need of normals from fx alphaburn!
+
+    if(distance < gradientStart)
+    {
+        colorSample.a = 0.0;
+    }
+    else
+    {
+        if(distance < AlphaBurnRadius)
+        {
+            float factor = (distance - gradientStart) / AlphaBurnGradientWidth;
+            colorSample.a = factor;
+        }
+        else
+        {
+            colorSample.a = 1.0;
+        }
+    }
+    gl_FragColor = colorSample;
+}

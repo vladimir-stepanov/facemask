@@ -1,0 +1,12 @@
+{
+    "name":             "Grapevine",
+    "majorVersion":     0,
+    "minorVersion":     1,
+    "sharedLibraries":
+    [
+        "libgrapevine-v8.so"
+    ],
+    "scripts":
+    [
+    ]
+}

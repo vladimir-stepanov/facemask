@@ -1,0 +1,4 @@
+bin_PROGRAMS = hello-stb1
+hello_stb1_SOURCES = main.cpp
+hello_stb1_LDADD = $(GRAPEVINE_DEPENDENCIES_LIBS)
+hello_stb1_CPPFLAGS = $(GRAPEVINE_DEPENDENCIES_CFLAGS)

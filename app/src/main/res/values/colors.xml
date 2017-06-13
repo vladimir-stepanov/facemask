@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorTransparentPanel">#33000000</color>
+    <color name="colorTextPanel">#ffffff</color>
+    <color name="white">#ffffffff</color>
+    <color name="white_20">#33ffffff</color>
+    <color name="bloody_white">#ffdadada</color>
+</resources>
