@@ -46,7 +46,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.huawei.dlib.FaceDetector;
+import com.huawei.dlib.DlibFaceDetector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -145,7 +145,7 @@ public class CameraActivity extends Activity {
     private TextView mMouthOpen;
     private View mBottomPanel;
     private TextView mPreviewSizeCaption;
-    private FaceDetector mFaceDetector;
+    private DlibFaceDetector mDlibFaceDetector;
     private FloatingPreviewWindow mFloatingView;
     private FaceView mFaceView;
     /**
@@ -343,8 +343,8 @@ public class CameraActivity extends Activity {
                     REQUEST_PERMISSIONS_CODE
             );
         } else {
-            mFaceDetector = FaceDetector.getInstance(this);
-            mFaceDetector.asyncInit();
+            mDlibFaceDetector = DlibFaceDetector.getInstance(this);
+            mDlibFaceDetector.asyncInit();
         }
     }
 
@@ -358,8 +358,8 @@ public class CameraActivity extends Activity {
                     return;
                 }
             }
-            mFaceDetector = FaceDetector.getInstance(this);
-            mFaceDetector.asyncInit();
+            mDlibFaceDetector = DlibFaceDetector.getInstance(this);
+            mDlibFaceDetector.asyncInit();
         }
     }
 

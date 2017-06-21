@@ -6,11 +6,11 @@ import android.graphics.Rect;
 import java.util.ArrayList;
 
 /**
- * A DetectedFace contains all the information identifying the location
+ * A DlibDetectedFace contains all the information identifying the location
  * and confidence value of the detected object in a bitmap.
  */
 @SuppressWarnings("CanBeFinal")
-public final class DetectedFace {
+public final class DlibDetectedFace {
 
     private final ArrayList<Point> mLandmarkPoints = new ArrayList<>();
     public final float[] mAngles = new float[3];
@@ -30,7 +30,7 @@ public final class DetectedFace {
 
     @SuppressWarnings("unused")
         // Used by jni
-    DetectedFace() {
+    DlibDetectedFace() {
     }
 
     public Rect getBounds() {

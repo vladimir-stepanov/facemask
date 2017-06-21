@@ -14,12 +14,12 @@ import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("JniMissingFunction")
-public class FaceDetector {
+public class DlibFaceDetector {
 
-    private static final String TAG = "FaceDetector";
+    private static final String TAG = "DlibFaceDetector";
     private static final Object LOCK = new Object();
     @SuppressLint("StaticFieldLeak")
-    private static FaceDetector sFaceDetector = null;
+    private static DlibFaceDetector sDlibFaceDetector = null;
 
     static {
         try {
@@ -39,7 +39,7 @@ public class FaceDetector {
     @SuppressWarnings("unused")
     private long mNativeFaceDetectorContext;
 
-    private FaceDetector(Context context) {
+    private DlibFaceDetector(Context context) {
         mInitiated = false;
         mInitialising = false;
         mContext = context;
@@ -47,18 +47,18 @@ public class FaceDetector {
                 + File.separator + "shape_predictor_68_face_landmarks.dat";
     }
 
-    public static FaceDetector getInstance() {
+    public static DlibFaceDetector getInstance() {
         synchronized (LOCK) {
-            return sFaceDetector;
+            return sDlibFaceDetector;
         }
     }
 
-    public static FaceDetector getInstance(Context context) {
+    public static DlibFaceDetector getInstance(Context context) {
         synchronized (LOCK) {
-            if (sFaceDetector == null) {
-                sFaceDetector = new FaceDetector(context);
+            if (sDlibFaceDetector == null) {
+                sDlibFaceDetector = new DlibFaceDetector(context);
             }
-            return sFaceDetector;
+            return sDlibFaceDetector;
         }
     }
 
@@ -132,9 +132,9 @@ public class FaceDetector {
         new InitThread().start();
     }
 
-    public List<DetectedFace> detect(Bitmap bitmap) {
+    public List<DlibDetectedFace> detect(Bitmap bitmap) {
         if (isInitiated()) {
-            DetectedFace[] faces = jniBitmapDetect(bitmap);
+            DlibDetectedFace[] faces = jniBitmapDetect(bitmap);
             return Arrays.asList(faces);
         } else {
             return null;
@@ -157,7 +157,7 @@ public class FaceDetector {
     @SuppressWarnings("UnusedReturnValue")
     private synchronized native int jniDeInit();
 
-    private synchronized native DetectedFace[] jniBitmapDetect(Bitmap bitmap);
+    private synchronized native DlibDetectedFace[] jniBitmapDetect(Bitmap bitmap);
 
     private class InitThread extends Thread {
 

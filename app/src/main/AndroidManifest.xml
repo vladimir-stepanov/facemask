@@ -20,6 +20,8 @@
         android:supportsRtl="true"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
 
+        <meta-data android:name="com.google.android.gms.vision.DEPENDENCIES" android:value="face"/>
+
         <activity
             android:name=".CameraActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

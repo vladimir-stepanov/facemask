@@ -76,7 +76,7 @@ extern "C" {
 #endif
 
 #define DLIB_FACE_JNI_METHOD(METHOD_NAME) \
-  Java_com_huawei_dlib_FaceDetector_##METHOD_NAME
+  Java_com_huawei_dlib_DlibFaceDetector_##METHOD_NAME
 
 void JNIEXPORT
 DLIB_FACE_JNI_METHOD(jniNativeClassInit)(JNIEnv *env, jclass _this) {}
@@ -161,12 +161,10 @@ jobjectArray getDetectResult(JNIEnv *env, DetectorPtr faceDetector, const int &s
             // Output rotation and translation
             static cv::Mat rotation_vector;
             static cv::Mat translation_vector;
-            cv::solvePnP(model_points, image_points, camera_matrix, dist_coeffs, rotation_vector,
-                         translation_vector);
-//            cv::solvePnPRansac(model_points, image_points, camera_matrix, dist_coeffs, rotation_vector, translation_vector, validFace, 2000);
-
+            cv::solvePnPRansac(model_points, image_points, camera_matrix, dist_coeffs,
+                               rotation_vector,
+                               translation_vector);
             jclass jcClass = env->GetObjectClass(jDetRet);
-
             jfieldID anglesFId = env->GetFieldID(jcClass, "mAngles", "[F");
             jobject anglesObj = env->GetObjectField(jDetRet, anglesFId);
             jfloatArray *anglesArray = reinterpret_cast<jfloatArray *>(&anglesObj);

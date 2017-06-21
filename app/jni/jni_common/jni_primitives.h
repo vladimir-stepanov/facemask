@@ -12,10 +12,10 @@
 #define CLASSNAME_POINTF "android/graphics/PointF"
 #define CONSTSIG_POINTF "()V"
 
-#define CLASSNAME_DETECTED_FACE "com/huawei/dlib/DetectedFace"
+#define CLASSNAME_DETECTED_FACE "com/huawei/dlib/DlibDetectedFace"
 #define CONSTSIG_DETECTED_FACE "()V"
 
-#define CLASSNAME_FACE_DETECTOR "com/huawei/dlib/FaceDetector"
+#define CLASSNAME_FACE_DETECTOR "com/huawei/dlib/DlibFaceDetector"
 
 class JavaPeer {
 public:

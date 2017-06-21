@@ -11,6 +11,7 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.media.Image;
 import android.media.Image.Plane;
 import android.media.ImageReader;
@@ -18,13 +19,20 @@ import android.media.ImageReader.OnImageAvailableListener;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Display;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.huawei.dlib.DetectedFace;
-import com.huawei.dlib.FaceDetector;
+import com.google.android.gms.vision.Detector;
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.face.Face;
+import com.google.android.gms.vision.face.FaceDetector;
+import com.google.android.gms.vision.face.Landmark;
+import com.huawei.dlib.DlibDetectedFace;
+import com.huawei.dlib.DlibFaceDetector;
 import com.huawei.dlib.ImageUtils;
+import com.huawei.gmsvision.GmsFaceDetector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,11 +47,11 @@ class OnGetImageListener implements OnImageAvailableListener {
     private static final String TAG = "OnGetImageListener";
     private static final boolean GRAY = false;
     private static final boolean CONTRAST = false;
-    private static final float SCALE = 0.4f;
+    private static final float SCALE = 0.5f;
     private final Point mScreenSize = new Point();
     private Activity mActivity;
     private FaceView mFaceView;
-    private List<DetectedFace> mDetectedFaces;
+    private List<DlibDetectedFace> mDlibDetectedFaces;
     private int mPreviewWidth = 0;
     private int mPreviewHeight = 0;
     private byte[][] mYUVBytes;
@@ -52,7 +60,8 @@ class OnGetImageListener implements OnImageAvailableListener {
     private Bitmap mCroppedBitmap = null;
     private boolean mIsComputing = false;
     private Handler mInferenceHandler;
-    private FaceDetector mFaceDetector;
+    // DLIB face detector
+    private DlibFaceDetector mDlibFaceDetector;
     private TextView mScore;
     private TextView mFrameRate;
     private TextView mMouthOpen;
@@ -60,6 +69,9 @@ class OnGetImageListener implements OnImageAvailableListener {
     private float mLastFrameRate = 0;
     private FloatingPreviewWindow mWindow;
     private Paint mFaceLandmarkPaint;
+
+    private Detector<Face> mGmsFaceDetector;
+    private SparseArray<Face> mGmsDetectedFaces;
 
     FloatingPreviewWindow initialize(Activity activity, FaceView faceView,
                                      TextView score, TextView frameRate,
@@ -71,22 +83,32 @@ class OnGetImageListener implements OnImageAvailableListener {
         mFrameRate = frameRate;
         mMouthOpen = mouthOpen;
         mInferenceHandler = handler;
-        mFaceDetector = FaceDetector.getInstance();
+        // Get DLIB face detector
+        mDlibFaceDetector = DlibFaceDetector.getInstance();
         mWindow = new FloatingPreviewWindow(activity);
         Display display = ((WindowManager) activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         display.getRealSize(mScreenSize);
 
+        // Get GMS Vision face detector
+        FaceDetector detector = new FaceDetector.Builder(mActivity)
+                .setTrackingEnabled(false)
+                .setProminentFaceOnly(true)
+                //.setLandmarkType(FaceDetector.NO_LANDMARKS)
+                .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+                .build();
+        mGmsFaceDetector = new GmsFaceDetector(detector);
+
         mFaceLandmarkPaint = new Paint();
         mFaceLandmarkPaint.setColor(Color.WHITE);
-        mFaceLandmarkPaint.setStrokeWidth(0);
         mFaceLandmarkPaint.setStyle(Paint.Style.STROKE);
+        mFaceLandmarkPaint.setStrokeWidth(2f * SCALE);
         return mWindow;
     }
 
     void deInitialize() {
         synchronized (OnGetImageListener.this) {
-            if (mFaceDetector != null) {
-                mFaceDetector.release();
+            if (mDlibFaceDetector != null) {
+                mDlibFaceDetector.release();
             }
 
             if (mWindow != null) {
@@ -220,77 +242,133 @@ class OnGetImageListener implements OnImageAvailableListener {
                 new Runnable() {
                     @Override
                     public void run() {
-
-                        if (mFaceDetector.isInitiated()) {
-                            final long startTime = System.currentTimeMillis();
-                            synchronized (OnGetImageListener.this) {
-                                if (mFaceDetector != null) {
-                                    mDetectedFaces = mFaceDetector.detect(mCroppedBitmap);
-                                } else {
-                                    mDetectedFaces = null;
-                                }
-                            }
-                            final long endTime = System.currentTimeMillis();
-                            mActivity.runOnUiThread(
-                                    new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mScore.setText(mActivity.getResources().getString(
-                                                    R.string.face_recognition_time, endTime - startTime));
-                                        }
-                                    });
-                        }
-
-                        if (mDetectedFaces != null && mDetectedFaces.size() > 0) {
-                            // Draw one face only on preview bitmap
-                            DetectedFace face = mDetectedFaces.get(0);
-                            Canvas canvas = new Canvas(mCroppedBitmap);
-                            mFaceLandmarkPaint.setColor(Color.DKGRAY);
-                            canvas.drawRect(face.getBounds(), mFaceLandmarkPaint);
-
-                            // Draw landmark
-                            mFaceLandmarkPaint.setColor(Color.WHITE);
-                            ArrayList<Point> landmarks = face.getFaceLandmarks();
-                            for (Point point : landmarks) {
-                                canvas.drawCircle(point.x, point.y, 1.0f, mFaceLandmarkPaint);
-                            }
-
-                            mFaceLandmarkPaint.setColor(Color.BLUE);
-                            Point start = face.getNoseStart();
-                            Point stop = face.getNoseEnd();
-                            canvas.drawLine(start.x, start.y, stop.x, stop.y, mFaceLandmarkPaint);
-
-                            final float mouthOpen = face.getMouthOpen();
-                            mActivity.runOnUiThread(
-                                    new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mMouthOpen.setText(mActivity.getResources().getString(
-                                                    R.string.mouth_open, mouthOpen));
-                                        }
-                                    });
-
-                            // Send face to grapevine
-                            mFaceView.setPoseAnglesAndModelView(true,
-                                    face.mAngles,
-                                    face.mModelView,
-                                    face.mFrustumScale,
-                                    face.mLandmarks);
-                        } else {
-                            mFaceView.setPoseAnglesAndModelView(false, null, null, null, null);
-                            mActivity.runOnUiThread(
-                                    new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mMouthOpen.setText(mActivity.getResources().getString(
-                                                    R.string.mouth_open, 0f));
-                                        }
-                                    });
-                        }
-                        mWindow.setRGBBitmap(mCroppedBitmap);
-                        mIsComputing = false;
+                        //detectFaceByDLIB();
+                        detectFaceByGMSVision();
                     }
                 });
-
     }
+
+    private void detectFaceByGMSVision() {
+        if (mGmsFaceDetector.isOperational()) {
+            final long startTime = System.currentTimeMillis();
+            Frame frame = new Frame.Builder().setBitmap(mCroppedBitmap).build();
+            mGmsDetectedFaces = mGmsFaceDetector.detect(frame);
+            final long endTime = System.currentTimeMillis();
+            mActivity.runOnUiThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            mScore.setText(mActivity.getResources().getString(
+                                    R.string.face_recognition_time, endTime - startTime));
+                        }
+                    });
+        } else {
+            mActivity.runOnUiThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            mScore.setText(mActivity.getResources().getString(R.string.initialising_engine));
+                        }
+                    });
+        }
+        if (mGmsDetectedFaces != null && mGmsDetectedFaces.size() > 0) {
+            // Draw one face only on preview bitmap
+            Face face = mGmsDetectedFaces.valueAt(0);
+            Canvas canvas = new Canvas(mCroppedBitmap);
+            // Draw box
+            mFaceLandmarkPaint.setColor(Color.DKGRAY);
+            canvas.drawRect(new Rect((int) face.getPosition().x,
+                    (int) face.getPosition().y,
+                    (int) (face.getPosition().x + face.getWidth()),
+                    (int) (face.getPosition().y + face.getHeight())), mFaceLandmarkPaint);
+            // Draw landmarks
+            mFaceLandmarkPaint.setColor(Color.WHITE);
+            for (Landmark landmark : face.getLandmarks()) {
+                int cx = (int) (landmark.getPosition().x);
+                int cy = (int) (landmark.getPosition().y);
+                canvas.drawCircle(cx, cy, 3.0f * SCALE, mFaceLandmarkPaint);
+            }
+        }
+        mWindow.setRGBBitmap(mCroppedBitmap);
+        mIsComputing = false;
+    }
+
+    private void detectFaceByDLIB() {
+        if (mDlibFaceDetector.isInitiated()) {
+            final long startTime = System.currentTimeMillis();
+            synchronized (OnGetImageListener.this) {
+                if (mDlibFaceDetector != null) {
+                    mDlibDetectedFaces = mDlibFaceDetector.detect(mCroppedBitmap);
+                } else {
+                    mDlibDetectedFaces = null;
+                }
+            }
+            final long endTime = System.currentTimeMillis();
+            mActivity.runOnUiThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            mScore.setText(mActivity.getResources().getString(
+                                    R.string.face_recognition_time, endTime - startTime));
+                        }
+                    });
+        } else {
+            mActivity.runOnUiThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            mScore.setText(mActivity.getResources().getString(R.string.initialising_engine));
+                        }
+                    });
+        }
+        if (mDlibDetectedFaces != null && mDlibDetectedFaces.size() > 0) {
+            // Draw one face only on preview bitmap
+            DlibDetectedFace face = mDlibDetectedFaces.get(0);
+            Canvas canvas = new Canvas(mCroppedBitmap);
+            // Draw box
+            mFaceLandmarkPaint.setColor(Color.DKGRAY);
+            canvas.drawRect(face.getBounds(), mFaceLandmarkPaint);
+            // Draw landmarks
+            mFaceLandmarkPaint.setColor(Color.WHITE);
+            ArrayList<Point> landmarks = face.getFaceLandmarks();
+            for (Point point : landmarks) {
+                canvas.drawCircle(point.x, point.y, 3.0f * SCALE, mFaceLandmarkPaint);
+            }
+            // draw a line sticking out of the nose
+            mFaceLandmarkPaint.setColor(Color.BLUE);
+            Point start = face.getNoseStart();
+            Point stop = face.getNoseEnd();
+            canvas.drawLine(start.x, start.y, stop.x, stop.y, mFaceLandmarkPaint);
+
+            final float mouthOpen = face.getMouthOpen();
+            mActivity.runOnUiThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            mMouthOpen.setText(mActivity.getResources().getString(
+                                    R.string.mouth_open, mouthOpen));
+                        }
+                    });
+
+            // Send face to grapevine
+            mFaceView.setPoseAnglesAndModelView(true,
+                    face.mAngles,
+                    face.mModelView,
+                    face.mFrustumScale,
+                    face.mLandmarks);
+        } else {
+            mFaceView.setPoseAnglesAndModelView(false, null, null, null, null);
+            mActivity.runOnUiThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            mMouthOpen.setText(mActivity.getResources().getString(
+                                    R.string.mouth_open, 0f));
+                        }
+                    });
+        }
+        mWindow.setRGBBitmap(mCroppedBitmap);
+        mIsComputing = false;
+    }
+
 }
