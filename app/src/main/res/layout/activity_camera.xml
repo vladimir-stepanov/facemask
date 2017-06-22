@@ -55,6 +55,76 @@
         android:orientation="vertical"
         android:paddingBottom="@dimen/nav_bar_height">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/dlib_radio_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/dlib_face_recognition" />
+
+            <RadioButton
+                android:id="@+id/gms_radio_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/gms_vision_face_recognition" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/white_20" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/image_brightness_caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="@dimen/panel_padding"
+                android:paddingEnd="@dimen/footer_panel_padding"
+                android:paddingStart="@dimen/footer_panel_padding"
+                android:paddingTop="@dimen/panel_padding"
+                android:text="@string/brightness_caption"
+                android:textColor="@color/white" />
+
+            <SeekBar
+                android:id="@+id/brightness_seek_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/image_contrast_caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="@dimen/panel_padding"
+                android:paddingEnd="@dimen/footer_panel_padding"
+                android:paddingStart="@dimen/footer_panel_padding"
+                android:paddingTop="@dimen/panel_padding"
+                android:text="@string/contrast_caption"
+                android:textColor="@color/white" />
+
+            <SeekBar
+                android:id="@+id/contrast_seek_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

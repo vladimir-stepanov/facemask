@@ -46,7 +46,9 @@ class OnGetImageListener implements OnImageAvailableListener {
 
     private static final String TAG = "OnGetImageListener";
     private static final boolean GRAY = false;
-    private static final boolean CONTRAST = false;
+    private static final boolean CONTRAST = true;
+    static final int DLIB_FACE_RECOGNITION = 1;
+    static final int GMS_FACE_RECOGNITION = 2;
     static float SCALE = 0.5f;
     private final Point mScreenSize = new Point();
     private Activity mActivity;
@@ -69,6 +71,9 @@ class OnGetImageListener implements OnImageAvailableListener {
     private float mLastFrameRate = 0;
     private FloatingPreviewWindow mWindow;
     private Paint mFaceLandmarkPaint;
+    private float mBrightness;
+    private float mContrast;
+    private int mFaceRecognition = DLIB_FACE_RECOGNITION;
 
     private Detector<Face> mGmsFaceDetector;
     private SparseArray<Face> mGmsDetectedFaces;
@@ -117,6 +122,18 @@ class OnGetImageListener implements OnImageAvailableListener {
         }
     }
 
+    void setBrightness(float brightness) {
+        mBrightness = brightness;
+    }
+
+    void setContrast(float contrast) {
+        mContrast = contrast;
+    }
+
+    void setFaceRecognition(int recognition) {
+        mFaceRecognition = recognition;
+    }
+
     private Bitmap imageSideInversion(Bitmap src) {
         Matrix sideInversion = new Matrix();
         sideInversion.setScale(SCALE, -SCALE);
@@ -135,15 +152,13 @@ class OnGetImageListener implements OnImageAvailableListener {
         } else if (CONTRAST) {
             // contrast = 0..10 1 is default
             // brightness = -255..255 0 is default
-            float contrast = 1;
-            float brightness = 0;
             Bitmap inBmp = Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), sideInversion, false);
             outBmp = Bitmap.createBitmap(inBmp.getWidth(), inBmp.getHeight(), Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(outBmp);
             ColorMatrix cm = new ColorMatrix(new float[]{
-                    contrast, 0, 0, 0, brightness,
-                    0, contrast, 0, 0, brightness,
-                    0, 0, contrast, 0, brightness,
+                    mContrast, 0, 0, 0, mBrightness,
+                    0, mContrast, 0, 0, mBrightness,
+                    0, 0, mContrast, 0, mBrightness,
                     0, 0, 0, 1, 0
             });
             Paint paint = new Paint();
@@ -242,8 +257,14 @@ class OnGetImageListener implements OnImageAvailableListener {
                 new Runnable() {
                     @Override
                     public void run() {
-                        detectFaceByDLIB();
-                        //detectFaceByGMSVision();
+                        switch (mFaceRecognition) {
+                            case DLIB_FACE_RECOGNITION:
+                                detectFaceByDLIB();
+                                break;
+                            case GMS_FACE_RECOGNITION:
+                                detectFaceByGMSVision();
+                                break;
+                        }
                     }
                 });
     }
@@ -351,11 +372,13 @@ class OnGetImageListener implements OnImageAvailableListener {
                     });
 
             // Send face to grapevine
+/*
             mFaceView.setPoseAnglesAndModelView(true,
                     face.mAngles,
                     face.mModelView,
                     face.mFrustumScale,
                     face.mLandmarks);
+*/
         } else {
             mFaceView.setPoseAnglesAndModelView(false, null, null, null, null);
             mActivity.runOnUiThread(

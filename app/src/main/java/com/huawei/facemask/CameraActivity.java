@@ -45,6 +45,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -152,10 +153,15 @@ public class CameraActivity extends Activity {
     private View mTopPanel;
     private View mBottomPanel;
     private TextView mImageSizeCaption;
+    private TextView mImageBrightnessCaption;
+    private TextView mImageContrastCaption;
     private ImageView mVisibilitySwitcher;
     private FloatingPreviewWindow mFloatingView;
     private SharedPreferences mPreferences;
     private DlibFaceDetector mDlibFaceDetector;
+    private RadioButton mDlibRadioButton;
+    private RadioButton mGmsRadioButton;
+
     private FaceView mFaceView;
     /**
      * {@link android.hardware.camera2.CameraDevice.StateCallback}
@@ -288,6 +294,14 @@ public class CameraActivity extends Activity {
         mTopPanel = findViewById(R.id.topPanel);
         mBottomPanel = findViewById(R.id.bottom_panel);
         mImageSizeCaption = (TextView) findViewById(R.id.image_size_caption);
+
+        mOnGetPreviewListener.setContrast(1.0f);
+        mOnGetPreviewListener.setBrightness(0f);
+        mOnGetPreviewListener.setFaceRecognition(OnGetImageListener.DLIB_FACE_RECOGNITION);
+        mImageBrightnessCaption = (TextView) findViewById(R.id.image_brightness_caption);
+        mImageBrightnessCaption.setText(getString(R.string.brightness_caption, 0f));
+        mImageContrastCaption = (TextView) findViewById(R.id.image_contrast_caption);
+        mImageContrastCaption.setText(getString(R.string.contrast_caption, 1f));
         SeekBar previewSizeBar = (SeekBar) findViewById(R.id.preview_size_seek_bar);
         previewSizeBar.setMax(SEEK_BAR_MAX);
         previewSizeBar.setProgress((int) (OnGetImageListener.SCALE * SEEK_BAR_MAX));
@@ -302,6 +316,53 @@ public class CameraActivity extends Activity {
                 int width = (int) (mCameraPreviewSize.getWidth() * OnGetImageListener.SCALE);
                 int height = (int) (mCameraPreviewSize.getHeight() * OnGetImageListener.SCALE);
                 mImageSizeCaption.setText(getString(R.string.image_size, width, height));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+        SeekBar brightnessBar = (SeekBar) findViewById(R.id.brightness_seek_bar);
+        brightnessBar.setMax(510);
+        brightnessBar.setProgress(255);
+        brightnessBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float brightness = progress - 255;
+                mOnGetPreviewListener.setBrightness(brightness);
+                mImageBrightnessCaption.setText(getString(R.string.brightness_caption, brightness));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+        SeekBar contrastBar = (SeekBar) findViewById(R.id.contrast_seek_bar);
+        contrastBar.setMax(200);
+        contrastBar.setProgress(100);
+        contrastBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float contrast;
+                if (progress == 100) {
+                    contrast = 1.0f;
+                } else if (progress > 100) {
+                    contrast = 1.0f + (progress - 100.0f) / 11.111111111111f;
+
+                } else {
+                    contrast = (float) progress / 100.0f;
+                }
+                mOnGetPreviewListener.setContrast(contrast);
+                mImageContrastCaption.setText(getString(R.string.contrast_caption, contrast));
+
             }
 
             @Override
@@ -332,6 +393,27 @@ public class CameraActivity extends Activity {
             verifyPermissions(this);
             RequestDrawOverlays();
         }
+
+        mDlibRadioButton = (RadioButton) findViewById(R.id.dlib_radio_button);
+        mDlibRadioButton.setChecked(true);
+        mGmsRadioButton = (RadioButton) findViewById(R.id.gms_radio_button);
+        mGmsRadioButton.setChecked(false);
+        mDlibRadioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDlibRadioButton.setChecked(true);
+                mGmsRadioButton.setChecked(false);
+                mOnGetPreviewListener.setFaceRecognition(OnGetImageListener.DLIB_FACE_RECOGNITION);
+            }
+        });
+        mGmsRadioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mGmsRadioButton.setChecked(true);
+                mDlibRadioButton.setChecked(false);
+                mOnGetPreviewListener.setFaceRecognition(OnGetImageListener.GMS_FACE_RECOGNITION);
+            }
+        });
 
         mFaceView = new FaceView(getApplication(), true, 24, 0); // Translucent, 24-bit depth, no stencil
         FrameLayout layout = (FrameLayout) findViewById(R.id.frame_layout);

@@ -6,5 +6,9 @@
     <string name="face_recognition_time">Face recognition time: %d mSec</string>
     <string name="camera_preview_frame_rate">Camera preview frame rate: %.2f fps</string>
     <string name="mouth_open">Mouth \"open\": %.2f</string>
+    <string name="brightness_caption">Brightness: %.0f</string>
+    <string name="contrast_caption">Contrast: %.2f</string>
     <string name="image_size">Size of image for recognition: <xliff:g id="width">%d</xliff:g>x<xliff:g id="height">%d</xliff:g>px</string>
+    <string name="dlib_face_recognition">DLIB Face Recognition</string>
+    <string name="gms_vision_face_recognition">GMS Vision Face Recognition</string>
 </resources>
