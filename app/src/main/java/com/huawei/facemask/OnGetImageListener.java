@@ -47,7 +47,7 @@ class OnGetImageListener implements OnImageAvailableListener {
     private static final String TAG = "OnGetImageListener";
     private static final boolean GRAY = false;
     private static final boolean CONTRAST = false;
-    private static final float SCALE = 0.5f;
+    static float SCALE = 0.5f;
     private final Point mScreenSize = new Point();
     private Activity mActivity;
     private FaceView mFaceView;
@@ -242,8 +242,8 @@ class OnGetImageListener implements OnImageAvailableListener {
                 new Runnable() {
                     @Override
                     public void run() {
-                        //detectFaceByDLIB();
-                        detectFaceByGMSVision();
+                        detectFaceByDLIB();
+                        //detectFaceByGMSVision();
                     }
                 });
     }
@@ -267,7 +267,7 @@ class OnGetImageListener implements OnImageAvailableListener {
                     new Runnable() {
                         @Override
                         public void run() {
-                            mScore.setText(mActivity.getResources().getString(R.string.initialising_engine));
+                            mScore.setText(mActivity.getResources().getString(R.string.initializing_engine));
                         }
                     });
         }
@@ -317,7 +317,7 @@ class OnGetImageListener implements OnImageAvailableListener {
                     new Runnable() {
                         @Override
                         public void run() {
-                            mScore.setText(mActivity.getResources().getString(R.string.initialising_engine));
+                            mScore.setText(mActivity.getResources().getString(R.string.initializing_engine));
                         }
                     });
         }

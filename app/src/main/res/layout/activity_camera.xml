@@ -16,8 +16,8 @@
 
     </FrameLayout>
 
-
     <LinearLayout
+        android:id="@+id/topPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
@@ -51,22 +51,47 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@color/colorTransparentPanel"
+        android:clickable="true"
         android:orientation="vertical"
         android:paddingBottom="@dimen/nav_bar_height">
 
-        <TextView
-            android:id="@+id/preview_size_caption"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingEnd="@dimen/footer_panel_padding"
-            android:paddingStart="@dimen/footer_panel_padding"
-            android:text="@string/preview_size"
-            android:textColor="@color/white" />
+            android:orientation="horizontal">
 
-        <SeekBar
-            android:id="@+id/preview_size_seek_bar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/image_size_caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:paddingBottom="@dimen/panel_padding"
+                android:paddingEnd="@dimen/footer_panel_padding"
+                android:paddingStart="@dimen/footer_panel_padding"
+                android:paddingTop="@dimen/panel_padding"
+                android:text="@string/image_size"
+                android:textColor="@color/white" />
+
+            <SeekBar
+                android:id="@+id/preview_size_seek_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_below="@+id/image_size_caption"
+                android:layout_toStartOf="@+id/visibility_switcher" />
+
+            <ImageView
+                android:id="@+id/visibility_switcher"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:clickable="true"
+                android:contentDescription="@string/app_name"
+                android:padding="@dimen/footer_panel_padding"
+                android:src="@drawable/preview_ic_visibility" />
+
+        </RelativeLayout>
 
     </LinearLayout>
 

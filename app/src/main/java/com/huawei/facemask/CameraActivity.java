@@ -9,6 +9,7 @@ import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.ImageFormat;
@@ -31,6 +32,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -42,6 +44,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -63,6 +66,9 @@ public class CameraActivity extends Activity {
 
     private static final String TAG = "CameraActivity";
     private static final String ERROR_DIALOG = "error_dialog";
+    private static final String KEY_PREVIEW_VISIBLE = "key_preview_visible";
+    private static final int MINIMUM_CAMERA_PREVIEW_SIZE = 300;
+    private static final int SEEK_BAR_MAX = 20;
     private static final int REQUEST_PERMISSIONS_CODE = 1;
     private static final int OVERLAY_PERMISSION_REQ_CODE = 2;
     private static final String[] PERMISSIONS_REQ = {
@@ -143,10 +149,13 @@ public class CameraActivity extends Activity {
     private TextView mScore;
     private TextView mCameraPreviewFrameRate;
     private TextView mMouthOpen;
+    private View mTopPanel;
     private View mBottomPanel;
-    private TextView mPreviewSizeCaption;
-    private DlibFaceDetector mDlibFaceDetector;
+    private TextView mImageSizeCaption;
+    private ImageView mVisibilitySwitcher;
     private FloatingPreviewWindow mFloatingView;
+    private SharedPreferences mPreferences;
+    private DlibFaceDetector mDlibFaceDetector;
     private FaceView mFaceView;
     /**
      * {@link android.hardware.camera2.CameraDevice.StateCallback}
@@ -167,7 +176,6 @@ public class CameraActivity extends Activity {
                     mCameraOpenCloseLock.release();
                     cd.close();
                     mCameraDevice = null;
-
                     mOnGetPreviewListener.deInitialize();
                 }
 
@@ -231,9 +239,9 @@ public class CameraActivity extends Activity {
             int width = option.getWidth();
             float cameraOutputRatio = (float) height / width;
             if (screenRatio == cameraOutputRatio) {
-                //if (height >= MINIMUM_PREVIEW_SIZE && width >= MINIMUM_PREVIEW_SIZE) {
-                Log.i(TAG, "Adding size: " + option.getWidth() + "x" + option.getHeight());
-                bigEnough.add(option);
+                if (height >= MINIMUM_CAMERA_PREVIEW_SIZE && width >= MINIMUM_CAMERA_PREVIEW_SIZE) {
+                    bigEnough.add(option);
+                }
             } else {
                 Log.i(TAG, "Not adding size: " + option.getWidth() + "x" + option.getHeight());
             }
@@ -265,39 +273,35 @@ public class CameraActivity extends Activity {
         mTextureView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                onClickExpandButton();
+                onClickCameraView();
             }
         });
         Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         display.getRealSize(mScreenSize);
 
         mScore = (TextView) findViewById(R.id.recognition_time);
-        mScore.setText(R.string.initialising_engine);
+        mScore.setText(R.string.initializing_engine);
         mCameraPreviewFrameRate = (TextView) findViewById(R.id.camera_preview_frame_rate);
-        mCameraPreviewFrameRate.setText(getResources().getString(R.string.camera_preview_frame_rate, 33.3f));
+        mCameraPreviewFrameRate.setText(getResources().getString(R.string.camera_preview_frame_rate, 30.0f));
         mMouthOpen = (TextView) findViewById(R.id.mouth_open);
         mMouthOpen.setText(getResources().getString(R.string.mouth_open, 0f));
+        mTopPanel = findViewById(R.id.topPanel);
         mBottomPanel = findViewById(R.id.bottom_panel);
-        mPreviewSizeCaption = (TextView) findViewById(R.id.preview_size_caption);
-        int width = mScreenSize.x * FloatingPreviewWindow.DEFAULT_SCALE / 100;
-        int height = mScreenSize.y * FloatingPreviewWindow.DEFAULT_SCALE / 100;
-        mPreviewSizeCaption.setText(getString(R.string.preview_size, width, height));
+        mImageSizeCaption = (TextView) findViewById(R.id.image_size_caption);
         SeekBar previewSizeBar = (SeekBar) findViewById(R.id.preview_size_seek_bar);
-        previewSizeBar.setProgress(FloatingPreviewWindow.DEFAULT_SCALE);
+        previewSizeBar.setMax(SEEK_BAR_MAX);
+        previewSizeBar.setProgress((int) (OnGetImageListener.SCALE * SEEK_BAR_MAX));
         previewSizeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (mFloatingView != null) {
-                    int width = mScreenSize.x * progress / 100;
-                    int height = mScreenSize.y * progress / 100;
-                    mFloatingView.setSize(width, height);
-                    if (progress > 5) {
-                        mFloatingView.show();
-                    } else {
-                        mFloatingView.hide();
-                    }
-                    mPreviewSizeCaption.setText(getString(R.string.preview_size, width, height));
+                // Set size of image for recognition
+                if (progress == 0) {
+                    progress = 1;
                 }
+                OnGetImageListener.SCALE = (float) progress / SEEK_BAR_MAX;
+                int width = (int) (mCameraPreviewSize.getWidth() * OnGetImageListener.SCALE);
+                int height = (int) (mCameraPreviewSize.getHeight() * OnGetImageListener.SCALE);
+                mImageSizeCaption.setText(getString(R.string.image_size, width, height));
             }
 
             @Override
@@ -308,7 +312,22 @@ public class CameraActivity extends Activity {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mVisibilitySwitcher = (ImageView) findViewById(R.id.visibility_switcher);
+        mVisibilitySwitcher.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean visible = !mPreferences.getBoolean(KEY_PREVIEW_VISIBLE, true);
+                if (visible) {
+                    mVisibilitySwitcher.setImageResource(R.drawable.preview_ic_visibility);
+                    mFloatingView.show();
+                } else {
+                    mVisibilitySwitcher.setImageResource(R.drawable.preview_ic_visibility_off);
+                    mFloatingView.hide();
+                }
+                mPreferences.edit().putBoolean(KEY_PREVIEW_VISIBLE, visible).apply();
+            }
+        });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             verifyPermissions(this);
             RequestDrawOverlays();
@@ -363,12 +382,16 @@ public class CameraActivity extends Activity {
         }
     }
 
-    private void onClickExpandButton() {
-        final boolean expand = mBottomPanel.getVisibility() != View.VISIBLE;
-        if (expand) {
+    private void onClickCameraView() {
+        final boolean bottom = mBottomPanel.getVisibility() == View.VISIBLE;
+        final boolean top = mTopPanel.getVisibility() == View.VISIBLE;
+        if (top && bottom) {
+            mTopPanel.setVisibility(View.GONE);
+            mBottomPanel.setVisibility(View.GONE);
+        } else if (top) {
             mBottomPanel.setVisibility(View.VISIBLE);
         } else {
-            mBottomPanel.setVisibility(View.GONE);
+            mTopPanel.setVisibility(View.VISIBLE);
         }
     }
 
@@ -438,7 +461,9 @@ public class CameraActivity extends Activity {
                     // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
                     // garbage capture data.
                     mCameraPreviewSize = chooseOptimalSize(this, map.getOutputSizes(SurfaceTexture.class));
-
+                    int width = (int) (mCameraPreviewSize.getWidth() * OnGetImageListener.SCALE);
+                    int height = (int) (mCameraPreviewSize.getHeight() * OnGetImageListener.SCALE);
+                    mImageSizeCaption.setText(getString(R.string.image_size, width, height));
                     mCameraId = cameraId;
                     return;
                 }
@@ -611,7 +636,19 @@ public class CameraActivity extends Activity {
         mFloatingView = mOnGetPreviewListener.initialize(this, mFaceView, mScore,
                 mCameraPreviewFrameRate, mMouthOpen, mInferenceHandler);
 
-        Log.i(TAG, "Getting assets.");
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                boolean visible = mPreferences.getBoolean(KEY_PREVIEW_VISIBLE, true);
+                if (visible) {
+                    mVisibilitySwitcher.setImageResource(R.drawable.preview_ic_visibility);
+                    mFloatingView.show();
+                } else {
+                    mVisibilitySwitcher.setImageResource(R.drawable.preview_ic_visibility_off);
+                    mFloatingView.hide();
+                }
+            }
+        });
     }
 
     /**

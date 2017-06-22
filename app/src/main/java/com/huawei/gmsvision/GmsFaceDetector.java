@@ -31,14 +31,14 @@ import java.util.Arrays;
  * most images with dimension < 147) and very thin images can cause a crash in the native face
  * detection code.  This will add padding to such images before face detection in order to avoid
  * this issue.<p>
- *
+ * <p>
  * This is not necessary for use with the camera, which doesn't ever create these types of
  * images.<p>
- *
+ * <p>
  * This detector should wrap the underlying DlibFaceDetector instance, like this:
- *
+ * <p>
  * Detector<Face> safeDetector = new GmsFaceDetector(faceDetector);
- *
+ * <p>
  * Replace all remaining occurrences of faceDetector with safeDetector.
  */
 public class GmsFaceDetector extends Detector<Face> {
@@ -75,10 +75,11 @@ public class GmsFaceDetector extends Detector<Face> {
             double multiple = (double) height / (double) kDimensionLower;
             double lowerWidth = Math.floor((double) width / multiple);
             if (lowerWidth < kMinDimension) {
-                // The width would have gone below the minimum when downsampling, so apply padding
+                // The width would have gone below the minimum when down sampling, so apply padding
                 // to the right to keep the width large enough.
                 int newWidth = (int) Math.ceil(kMinDimension * multiple);
                 frame = padFrameRight(frame, newWidth);
+                Log.d(TAG, "frame = padFrameRight(frame, newWidth);");
             }
         } else if (width > (2 * kDimensionLower)) {
             // The image will be scaled down before detection is run.  Check to make sure that this
@@ -88,9 +89,11 @@ public class GmsFaceDetector extends Detector<Face> {
             if (lowerHeight < kMinDimension) {
                 int newHeight = (int) Math.ceil(kMinDimension * multiple);
                 frame = padFrameBottom(frame, newHeight);
+                Log.d(TAG, "frame = padFrameBottom(frame, newHeight);");
             }
         } else if (width < kMinDimension) {
             frame = padFrameRight(frame, kMinDimension);
+            Log.d(TAG, "frame = padFrameRight(frame, kMinDimension);");
         }
 
         return mDelegate.detect(frame);
