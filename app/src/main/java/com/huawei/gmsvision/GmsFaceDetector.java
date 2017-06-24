@@ -95,8 +95,12 @@ public class GmsFaceDetector extends Detector<Face> {
             frame = padFrameRight(frame, kMinDimension);
             Log.d(TAG, "frame = padFrameRight(frame, kMinDimension);");
         }
-
-        return mDelegate.detect(frame);
+        SparseArray<Face> faces = null;
+        try {
+            faces = mDelegate.detect(frame);
+        } catch (RuntimeException ignore) {
+        }
+        return faces;
     }
 
     @Override

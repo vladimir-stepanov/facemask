@@ -68,6 +68,8 @@ public class CameraActivity extends Activity {
     private static final String TAG = "CameraActivity";
     private static final String ERROR_DIALOG = "error_dialog";
     private static final String KEY_PREVIEW_VISIBLE = "key_preview_visible";
+    private static final String KEY_DETECTION_FEATURE = "key_detection_feature";
+    private static final String KEY_LANDMARKS_DETECTION = "key_landmarks_detection";
     private static final int MINIMUM_CAMERA_PREVIEW_SIZE = 300;
     private static final int SEEK_BAR_MAX = 20;
     private static final int REQUEST_PERMISSIONS_CODE = 1;
@@ -161,6 +163,12 @@ public class CameraActivity extends Activity {
     private DlibFaceDetector mDlibFaceDetector;
     private RadioButton mDlibRadioButton;
     private RadioButton mGmsRadioButton;
+    private ImageView mLandmarksDetection;
+    private boolean mLandmarksDetectionEnabled;
+    private SeekBar mBrightnessBar;
+    private ImageView mBrightnessButton;
+    private SeekBar mContrastBar;
+    private ImageView mContrastButton;
 
     private FaceView mFaceView;
     /**
@@ -267,10 +275,6 @@ public class CameraActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
 
-        MainLib.onCreate();
-        AssetManager assetManager = getAssets();
-        MainLib.setAssetManager(assetManager);
-
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -295,9 +299,11 @@ public class CameraActivity extends Activity {
         mBottomPanel = findViewById(R.id.bottom_panel);
         mImageSizeCaption = (TextView) findViewById(R.id.image_size_caption);
 
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mOnGetPreviewListener.setContrast(1.0f);
         mOnGetPreviewListener.setBrightness(0f);
-        mOnGetPreviewListener.setFaceRecognition(OnGetImageListener.DLIB_FACE_RECOGNITION);
+        int feature = mPreferences.getInt(KEY_DETECTION_FEATURE, OnGetImageListener.DLIB_FACE_RECOGNITION);
+        mOnGetPreviewListener.setFaceRecognition(feature);
         mImageBrightnessCaption = (TextView) findViewById(R.id.image_brightness_caption);
         mImageBrightnessCaption.setText(getString(R.string.brightness_caption, 0f));
         mImageContrastCaption = (TextView) findViewById(R.id.image_contrast_caption);
@@ -326,10 +332,10 @@ public class CameraActivity extends Activity {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-        SeekBar brightnessBar = (SeekBar) findViewById(R.id.brightness_seek_bar);
-        brightnessBar.setMax(510);
-        brightnessBar.setProgress(255);
-        brightnessBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        mBrightnessBar = (SeekBar) findViewById(R.id.brightness_seek_bar);
+        mBrightnessBar.setMax(510);
+        mBrightnessBar.setProgress(255);
+        mBrightnessBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 float brightness = progress - 255;
@@ -345,10 +351,17 @@ public class CameraActivity extends Activity {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-        SeekBar contrastBar = (SeekBar) findViewById(R.id.contrast_seek_bar);
-        contrastBar.setMax(200);
-        contrastBar.setProgress(100);
-        contrastBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        mBrightnessButton = (ImageView) findViewById(R.id.brightness_default);
+        mBrightnessButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBrightnessBar.setProgress(255);
+            }
+        });
+        mContrastBar = (SeekBar) findViewById(R.id.contrast_seek_bar);
+        mContrastBar.setMax(200);
+        mContrastBar.setProgress(100);
+        mContrastBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 float contrast;
@@ -373,7 +386,13 @@ public class CameraActivity extends Activity {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mContrastButton = (ImageView) findViewById(R.id.contrast_default);
+        mContrastButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mContrastBar.setProgress(100);
+            }
+        });
         mVisibilitySwitcher = (ImageView) findViewById(R.id.visibility_switcher);
         mVisibilitySwitcher.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -389,9 +408,25 @@ public class CameraActivity extends Activity {
                 mPreferences.edit().putBoolean(KEY_PREVIEW_VISIBLE, visible).apply();
             }
         });
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            verifyPermissions(this);
-            RequestDrawOverlays();
+        mLandmarksDetectionEnabled = mPreferences.getBoolean(KEY_LANDMARKS_DETECTION, true);
+        mLandmarksDetection = (ImageView) findViewById(R.id.landmarks_detection_switcher);
+        mLandmarksDetection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mLandmarksDetectionEnabled = !mPreferences.getBoolean(KEY_LANDMARKS_DETECTION, true);
+                if (mLandmarksDetectionEnabled) {
+                    mLandmarksDetection.setImageResource(R.drawable.landmarks_ic_on);
+                } else {
+                    mLandmarksDetection.setImageResource(R.drawable.landmarks_ic_off);
+                }
+                mPreferences.edit().putBoolean(KEY_LANDMARKS_DETECTION, mLandmarksDetectionEnabled).apply();
+                mOnGetPreviewListener.setLandmarksDetection(mLandmarksDetectionEnabled);
+            }
+        });
+        if (mLandmarksDetectionEnabled) {
+            mLandmarksDetection.setImageResource(R.drawable.landmarks_ic_on);
+        } else {
+            mLandmarksDetection.setImageResource(R.drawable.landmarks_ic_off);
         }
 
         mDlibRadioButton = (RadioButton) findViewById(R.id.dlib_radio_button);
@@ -404,6 +439,7 @@ public class CameraActivity extends Activity {
                 mDlibRadioButton.setChecked(true);
                 mGmsRadioButton.setChecked(false);
                 mOnGetPreviewListener.setFaceRecognition(OnGetImageListener.DLIB_FACE_RECOGNITION);
+                mPreferences.edit().putInt(KEY_DETECTION_FEATURE, OnGetImageListener.DLIB_FACE_RECOGNITION).apply();
             }
         });
         mGmsRadioButton.setOnClickListener(new View.OnClickListener() {
@@ -412,13 +448,12 @@ public class CameraActivity extends Activity {
                 mGmsRadioButton.setChecked(true);
                 mDlibRadioButton.setChecked(false);
                 mOnGetPreviewListener.setFaceRecognition(OnGetImageListener.GMS_FACE_RECOGNITION);
+                mPreferences.edit().putInt(KEY_DETECTION_FEATURE, OnGetImageListener.GMS_FACE_RECOGNITION).apply();
             }
         });
 
-        mFaceView = new FaceView(getApplication(), true, 24, 0); // Translucent, 24-bit depth, no stencil
-        FrameLayout layout = (FrameLayout) findViewById(R.id.frame_layout);
-        layout.addView(mFaceView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
-        mFaceView.setZOrderOnTop(true);
+        mDlibRadioButton.setChecked(feature == OnGetImageListener.DLIB_FACE_RECOGNITION);
+        mGmsRadioButton.setChecked(feature == OnGetImageListener.GMS_FACE_RECOGNITION);
     }
 
     private void RequestDrawOverlays() {
@@ -480,7 +515,17 @@ public class CameraActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        startBackgroundThread();
+        mScore.setText(R.string.initializing_engine);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            verifyPermissions(this);
+            RequestDrawOverlays();
+        } else {
+            mDlibFaceDetector = DlibFaceDetector.getInstance(this);
+            mDlibFaceDetector.asyncInit();
+        }
+        AssetManager assetManager = getAssets();
+        MainLib.onCreate();
+        MainLib.setAssetManager(assetManager);
 
         // When the screen is turned off and turned back on, the SurfaceTexture is already
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
@@ -491,16 +536,25 @@ public class CameraActivity extends Activity {
         } else {
             mTextureView.setSurfaceTextureListener(surfaceTextureListener);
         }
+        mFaceView = new FaceView(getApplication(), true, 24, 0); // Translucent, 24-bit depth, no stencil
+        FrameLayout layout = (FrameLayout) findViewById(R.id.frame_layout);
+        layout.addView(mFaceView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+        mFaceView.setZOrderOnTop(true);
+
         mFaceView.onResume();
         mFaceView.bringToFront();
+        startBackgroundThread();
+        mOnGetPreviewListener.setOperational(true);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        closeCamera();
-        stopBackgroundThread();
         mFaceView.onPause();
+        mOnGetPreviewListener.setOperational(false);
+        stopBackgroundThread();
+        closeCamera();
+        MainLib.onDestroy();
     }
 
     @Override
@@ -592,6 +646,7 @@ public class CameraActivity extends Activity {
     private void closeCamera() {
         try {
             mCameraOpenCloseLock.acquire();
+            mOnGetPreviewListener.deInitialize();
             if (null != mCaptureSession) {
                 mCaptureSession.close();
                 mCaptureSession = null;
@@ -604,7 +659,6 @@ public class CameraActivity extends Activity {
                 mPreviewReader.close();
                 mPreviewReader = null;
             }
-            mOnGetPreviewListener.deInitialize();
         } catch (final InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera closing.", e);
         } finally {
@@ -716,7 +770,7 @@ public class CameraActivity extends Activity {
         }
 
         mFloatingView = mOnGetPreviewListener.initialize(this, mFaceView, mScore,
-                mCameraPreviewFrameRate, mMouthOpen, mInferenceHandler);
+                mCameraPreviewFrameRate, mMouthOpen, mLandmarksDetectionEnabled, mInferenceHandler);
 
         runOnUiThread(new Runnable() {
             @Override

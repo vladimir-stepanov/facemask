@@ -88,7 +88,7 @@ jobjectArray getDetectResult(JNIEnv *env, DetectorPtr faceDetector, const int &s
     float frustumScale[3];
     float landmarks[2 * 68];
 
-    LOG(INFO) << "getDetectResult";
+    //LOG(INFO) << "getDetectResult";
     jobjectArray jDetRetArray = JNI_DetectedFace::createJObjectArray(env, size);
     for (int i = 0; i < size; i++) {
         jobject jDetRet = JNI_DetectedFace::createJObject(env);
@@ -252,14 +252,14 @@ jobjectArray getDetectResult(JNIEnv *env, DetectorPtr faceDetector, const int &s
 
 JNIEXPORT jobjectArray JNICALL
 DLIB_FACE_JNI_METHOD(jniBitmapDetect)(JNIEnv *env, jobject thiz, jobject bitmap) {
-    LOG(INFO) << "jniBitmapDetect";
+    //LOG(INFO) << "jniBitmapDetect";
     cv::Mat rgbaMat;
     cv::Mat bgrMat;
     jniutils::ConvertBitmapToRGBAMat(env, bitmap, rgbaMat, true);
     cv::cvtColor(rgbaMat, bgrMat, cv::COLOR_RGBA2BGR);
     DetectorPtr detPtr = getDetectorPtr(env, thiz);
     jint size = detPtr->det(bgrMat);
-    LOG(INFO) << "det num faces: " << size;
+    //LOG(INFO) << "det num faces: " << size;
     return getDetectResult(env, detPtr, size, bgrMat);
 }
 

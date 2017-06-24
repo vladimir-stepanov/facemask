@@ -129,14 +129,13 @@ public:
         // It's unnecessary to use color image for face/landmark detection
         dlib::cv_image<dlib::bgr_pixel> img(image);
         mRets = mFrontalFaceDetector(img);
-        LOG(INFO) << "Dlib HOG face det size : " << mRets.size();
+        //LOG(INFO) << "Dlib HOG face det size : " << mRets.size();
         mFaceShapeMap.clear();
         // Process shape
         if (mRets.size() != 0 && mLandMarkModel.empty() == false) {
             for (unsigned long j = 0; j < mRets.size(); ++j) {
                 dlib::full_object_detection shape = msp(img, mRets[j]);
-                LOG(INFO) << "face index:" << j
-                          << "number of parts: " << shape.num_parts();
+                //LOG(INFO) << "face index:" << j << "number of parts: " << shape.num_parts();
                 mFaceShapeMap[j] = shape;
             }
         }

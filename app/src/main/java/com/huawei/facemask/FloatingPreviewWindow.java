@@ -1,11 +1,13 @@
 package com.huawei.facemask;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.support.annotation.UiThread;
 import android.view.Display;
 import android.view.Gravity;
@@ -17,10 +19,13 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import com.google.gson.Gson;
+
 import java.lang.ref.WeakReference;
 
 class FloatingPreviewWindow {
 
+    private static final String KEY_PREVIEW_POSITION = "key_preview_position";
     private static final int DEFAULT_SCALE = 25;
     private final Context mContext;
     private final Handler mUIHandler;
@@ -29,9 +34,12 @@ class FloatingPreviewWindow {
     private FloatCamView mRootView;
     private Rect mWindowRect;
     private Point mScreenSize;
+    private boolean mVisible = true;
+    private SharedPreferences mPreferences;
 
     FloatingPreviewWindow(Context context) {
         mContext = context;
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
         mUIHandler = new Handler(Looper.getMainLooper());
         mScreenSize = new Point();
         Display display = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
@@ -46,12 +54,14 @@ class FloatingPreviewWindow {
     }
 
     void hide() {
+        mVisible = false;
         if (mRootView != null) {
             mRootView.setVisibility(View.GONE);
         }
     }
 
     void show() {
+        mVisible = true;
         if (mRootView != null) {
             mRootView.setVisibility(View.VISIBLE);
         }
@@ -65,6 +75,15 @@ class FloatingPreviewWindow {
                     mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
                     mRootView = new FloatCamView(FloatingPreviewWindow.this);
                     mWindowManager.addView(mRootView, initWindowParameter());
+                    Gson gson = new Gson();
+                    String json = mPreferences.getString(KEY_PREVIEW_POSITION, null);
+                    if (json != null) {
+                        Rect rect = gson.fromJson(json, Rect.class);
+                        mRootView.setPos(rect.left, rect.top, rect.width(), rect.height());
+                    }
+                    if (!mVisible) {
+                        mRootView.setVisibility(View.GONE);
+                    }
                 }
             }
         });
@@ -177,6 +196,10 @@ class FloatingPreviewWindow {
                 mWindowRect.bottom = params.y + height;
                 windowMgr.updateViewLayout(this, params);
             }
+            Rect rect = new Rect(left, top, left + width, top + height);
+            Gson gson = new Gson();
+            String json = gson.toJson(rect);
+            mPreferences.edit().putString(KEY_PREVIEW_POSITION, json).apply();
         }
 
         private void setSize(int height) {

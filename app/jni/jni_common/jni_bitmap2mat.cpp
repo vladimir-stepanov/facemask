@@ -17,7 +17,7 @@ void ConvertBitmapToRGBAMat(JNIEnv* env, jobject& bitmap, Mat& dst,
     CV_Assert(pixels);
     dst.create(info.height, info.width, CV_8UC4);
     if (info.format == ANDROID_BITMAP_FORMAT_RGBA_8888) {
-      LOG(INFO) << "nBitmapToMat: RGBA_8888 -> CV_8UC4";
+      //LOG(INFO) << "nBitmapToMat: RGBA_8888 -> CV_8UC4";
       Mat tmp(info.height, info.width, CV_8UC4, pixels);
       if (needUnPremultiplyAlpha)
         cvtColor(tmp, dst, COLOR_mRGBA2RGBA);
@@ -25,7 +25,7 @@ void ConvertBitmapToRGBAMat(JNIEnv* env, jobject& bitmap, Mat& dst,
         tmp.copyTo(dst);
     } else {
       // info.format == ANDROID_BITMAP_FORMAT_RGB_565
-      LOG(INFO) << "nBitmapToMat: RGB_565 -> CV_8UC4";
+      //LOG(INFO) << "nBitmapToMat: RGB_565 -> CV_8UC4";
       Mat tmp(info.height, info.width, CV_8UC2, pixels);
       cvtColor(tmp, dst, COLOR_BGR5652RGBA);
     }
