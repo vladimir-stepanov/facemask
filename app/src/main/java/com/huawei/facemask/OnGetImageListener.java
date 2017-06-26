@@ -125,7 +125,7 @@ class OnGetImageListener implements OnImageAvailableListener {
         mOperational = value;
     }
 
-    private boolean isOperational() {
+    boolean isOperational() {
         return mOperational;
     }
 
@@ -216,6 +216,7 @@ class OnGetImageListener implements OnImageAvailableListener {
     @Override
     public void onImageAvailable(final ImageReader reader) {
         if (!isOperational()) {
+            reader.acquireLatestImage().close();
             return;
         }
         Image image = null;

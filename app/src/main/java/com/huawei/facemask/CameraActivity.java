@@ -120,7 +120,7 @@ public class CameraActivity extends Activity {
     /**
      * An {@link ImageReader} that handles preview frame capture.
      */
-    private ImageReader mPreviewReader;
+    private ImageReader mCameraPreviewReader;
     /**
      * {@link android.hardware.camera2.CaptureRequest.Builder} for the camera preview
      */
@@ -166,9 +166,7 @@ public class CameraActivity extends Activity {
     private ImageView mLandmarksDetection;
     private boolean mLandmarksDetectionEnabled;
     private SeekBar mBrightnessBar;
-    private ImageView mBrightnessButton;
     private SeekBar mContrastBar;
-    private ImageView mContrastButton;
 
     private FaceView mFaceView;
     /**
@@ -183,6 +181,9 @@ public class CameraActivity extends Activity {
                     mCameraOpenCloseLock.release();
                     mCameraDevice = cd;
                     createCameraPreviewSession();
+                    if (mFloatingView == null) {
+                        createFloatingView();
+                    }
                 }
 
                 @Override
@@ -190,7 +191,6 @@ public class CameraActivity extends Activity {
                     mCameraOpenCloseLock.release();
                     cd.close();
                     mCameraDevice = null;
-                    mOnGetPreviewListener.deInitialize();
                 }
 
                 @Override
@@ -199,7 +199,6 @@ public class CameraActivity extends Activity {
                     cd.close();
                     mCameraDevice = null;
                     finish();
-                    mOnGetPreviewListener.deInitialize();
                 }
             };
     /**
@@ -296,6 +295,19 @@ public class CameraActivity extends Activity {
         mMouthOpen = (TextView) findViewById(R.id.mouth_open);
         mMouthOpen.setText(getResources().getString(R.string.mouth_open, 0f));
         mTopPanel = findViewById(R.id.topPanel);
+
+        ImageView menuButton = (ImageView) findViewById(R.id.menu_button);
+        menuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mOnGetPreviewListener.isOperational()) {
+                    stopListenToCamera();
+                } else {
+                    startListenToCamera();
+                }
+            }
+        });
+
         mBottomPanel = findViewById(R.id.bottom_panel);
         mImageSizeCaption = (TextView) findViewById(R.id.image_size_caption);
 
@@ -351,8 +363,8 @@ public class CameraActivity extends Activity {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-        mBrightnessButton = (ImageView) findViewById(R.id.brightness_default);
-        mBrightnessButton.setOnClickListener(new View.OnClickListener() {
+        ImageView brightnessButton = (ImageView) findViewById(R.id.brightness_default);
+        brightnessButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mBrightnessBar.setProgress(255);
@@ -386,8 +398,8 @@ public class CameraActivity extends Activity {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
-        mContrastButton = (ImageView) findViewById(R.id.contrast_default);
-        mContrastButton.setOnClickListener(new View.OnClickListener() {
+        ImageView contrastButton = (ImageView) findViewById(R.id.contrast_default);
+        contrastButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mContrastBar.setProgress(100);
@@ -512,17 +524,7 @@ public class CameraActivity extends Activity {
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mScore.setText(R.string.initializing_engine);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            verifyPermissions(this);
-            RequestDrawOverlays();
-        } else {
-            mDlibFaceDetector = DlibFaceDetector.getInstance(this);
-            mDlibFaceDetector.asyncInit();
-        }
+    private void startListenToCamera() {
         AssetManager assetManager = getAssets();
         MainLib.onCreate();
         MainLib.setAssetManager(assetManager);
@@ -536,6 +538,16 @@ public class CameraActivity extends Activity {
         } else {
             mTextureView.setSurfaceTextureListener(surfaceTextureListener);
         }
+        mOnGetPreviewListener.setOperational(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mScore.setText(R.string.initializing_engine);
+        verifyPermissions(this);
+        RequestDrawOverlays();
+
         mFaceView = new FaceView(getApplication(), true, 24, 0); // Translucent, 24-bit depth, no stencil
         FrameLayout layout = (FrameLayout) findViewById(R.id.frame_layout);
         layout.addView(mFaceView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
@@ -544,17 +556,22 @@ public class CameraActivity extends Activity {
         mFaceView.onResume();
         mFaceView.bringToFront();
         startBackgroundThread();
-        mOnGetPreviewListener.setOperational(true);
+        startListenToCamera();
+    }
+
+    private void stopListenToCamera() {
+        mOnGetPreviewListener.setOperational(false);
+        closeCamera();
+        MainLib.onDestroy();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mFaceView.onPause();
-        mOnGetPreviewListener.setOperational(false);
+        stopListenToCamera();
+        mOnGetPreviewListener.deInitialize();
         stopBackgroundThread();
-        closeCamera();
-        MainLib.onDestroy();
     }
 
     @Override
@@ -646,7 +663,6 @@ public class CameraActivity extends Activity {
     private void closeCamera() {
         try {
             mCameraOpenCloseLock.acquire();
-            mOnGetPreviewListener.deInitialize();
             if (null != mCaptureSession) {
                 mCaptureSession.close();
                 mCaptureSession = null;
@@ -655,9 +671,9 @@ public class CameraActivity extends Activity {
                 mCameraDevice.close();
                 mCameraDevice = null;
             }
-            if (null != mPreviewReader) {
-                mPreviewReader.close();
-                mPreviewReader = null;
+            if (null != mCameraPreviewReader) {
+                mCameraPreviewReader.close();
+                mCameraPreviewReader = null;
             }
         } catch (final InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera closing.", e);
@@ -721,16 +737,16 @@ public class CameraActivity extends Activity {
             Log.i(TAG, "Opening camera preview: " + mCameraPreviewSize.getWidth() + "x" + mCameraPreviewSize.getHeight());
 
             // Create the reader for the preview frames.
-            mPreviewReader =
+            mCameraPreviewReader =
                     ImageReader.newInstance(
                             mCameraPreviewSize.getWidth(), mCameraPreviewSize.getHeight(), ImageFormat.YUV_420_888, 2);
 
-            mPreviewReader.setOnImageAvailableListener(mOnGetPreviewListener, mBackgroundHandler);
-            mPreviewRequestBuilder.addTarget(mPreviewReader.getSurface());
+            mCameraPreviewReader.setOnImageAvailableListener(mOnGetPreviewListener, mBackgroundHandler);
+            mPreviewRequestBuilder.addTarget(mCameraPreviewReader.getSurface());
 
             // Here, we create a CameraCaptureSession for camera preview.
             mCameraDevice.createCaptureSession(
-                    Arrays.asList(surface, mPreviewReader.getSurface()), new CameraCaptureSession.StateCallback() {
+                    Arrays.asList(surface, mCameraPreviewReader.getSurface()), new CameraCaptureSession.StateCallback() {
 
                         @Override
                         public void onConfigured(@NonNull final CameraCaptureSession cameraCaptureSession) {
@@ -768,7 +784,9 @@ public class CameraActivity extends Activity {
         } catch (final CameraAccessException e) {
             Log.e(TAG, "Exception!", e);
         }
+    }
 
+    private void createFloatingView() {
         mFloatingView = mOnGetPreviewListener.initialize(this, mFaceView, mScore,
                 mCameraPreviewFrameRate, mMouthOpen, mLandmarksDetectionEnabled, mInferenceHandler);
 
