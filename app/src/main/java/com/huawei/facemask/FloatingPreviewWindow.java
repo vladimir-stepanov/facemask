@@ -34,6 +34,7 @@ class FloatingPreviewWindow {
     private FloatCamView mRootView;
     private Rect mWindowRect;
     private Point mScreenSize;
+    private float mProportion;
     private boolean mVisible = true;
     private SharedPreferences mPreferences;
 
@@ -45,11 +46,10 @@ class FloatingPreviewWindow {
         Display display = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         display.getRealSize(mScreenSize);
 
+        mProportion = (float) mScreenSize.x / mScreenSize.y;
         // Default window size
-        int width = mScreenSize.x * DEFAULT_SCALE / 100;
         int height = mScreenSize.y * DEFAULT_SCALE / 100;
-        width = width > 0 && width < mScreenSize.x ? width : mScreenSize.x;
-        height = height > 0 && height < mScreenSize.y ? height : mScreenSize.y;
+        int width = (int) (height * mProportion);
         mWindowRect = new Rect(0, 0, width, height);
     }
 
@@ -94,7 +94,9 @@ class FloatingPreviewWindow {
             @Override
             public void run() {
                 if (mWindowManager != null) {
-                    mWindowManager.removeViewImmediate(mRootView);
+                    if (mRootView != null) {
+                        mWindowManager.removeViewImmediate(mRootView);
+                    }
                     mRootView = null;
                 }
                 mUIHandler.removeCallbacksAndMessages(null);
@@ -206,7 +208,7 @@ class FloatingPreviewWindow {
             if (height > mScreenSize.y) {
                 height = mScreenSize.y;
             }
-            int width = height * mScreenSize.x / mScreenSize.y;
+            int width = (int) (height * mProportion);
             WindowManager.LayoutParams params = mWeakRef.get().mWindowParam;
             if (params != null) {
                 int left = params.x + (mWindowRect.width() - width) / 2;
@@ -236,7 +238,7 @@ class FloatingPreviewWindow {
                     if (mWindowRect.height() == mScreenSize.y) {
                         setSize(mScreenSize.y * DEFAULT_SCALE / 100);
                     } else {
-                        setPos(0, 0, mScreenSize.x, mScreenSize.y);
+                        setPos(0, 0, mScreenSize.x, (int) (mScreenSize.x / mProportion));
                     }
                     retVal = true;
                 } else {

@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/frame_layout"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/texture_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clickable="true">
@@ -15,13 +15,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-    </FrameLayout>
+    </LinearLayout>
 
     <RelativeLayout
         android:id="@+id/topPanel"
-        android:background="@color/colorTransparentPanel"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/colorTransparentPanel">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -51,7 +51,7 @@
         </LinearLayout>
 
         <ImageView
-            android:id="@+id/menu_button"
+            android:id="@+id/switch_front_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
@@ -59,7 +59,7 @@
             android:clickable="true"
             android:contentDescription="@string/app_name"
             android:padding="@dimen/footer_panel_padding"
-            android:src="@drawable/landmarks_ic_on" />
+            android:src="@drawable/ic_switch_camera_front" />
 
     </RelativeLayout>
 
@@ -81,6 +81,15 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="@string/landmarks_caption"
+                    android:textColor="@color/colorTextPanel"
+                    android:textSize="11dp"
+                    tools:ignore="RelativeOverlap,SpUsage" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -112,6 +121,39 @@
                     android:contentDescription="@string/app_name"
                     android:padding="@dimen/footer_panel_padding"
                     android:src="@drawable/landmarks_ic_on" />
+
+                <ImageView
+                    android:id="@+id/source_video"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/landmarks_detection_switcher"
+                    android:clickable="true"
+                    android:contentDescription="@string/app_name"
+                    android:padding="@dimen/footer_panel_padding"
+                    android:src="@drawable/ic_video" />
+
+                <ImageView
+                    android:id="@+id/source_images"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/source_video"
+                    android:clickable="true"
+                    android:contentDescription="@string/app_name"
+                    android:padding="@dimen/footer_panel_padding"
+                    android:src="@drawable/ic_images" />
+
+                <ImageView
+                    android:id="@+id/source_camera"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/source_images"
+                    android:clickable="true"
+                    android:contentDescription="@string/app_name"
+                    android:padding="@dimen/footer_panel_padding"
+                    android:src="@drawable/ic_camera" />
 
             </RelativeLayout>
 
