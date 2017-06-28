@@ -27,8 +27,9 @@ class ImageHandler {
     private static float sBrightness;
     private static float sContrast;
 
-    static void init(Context context, FloatingPreviewWindow preview) {
+    static boolean init(Context context, FloatingPreviewWindow preview) {
         sRunning = false;
+        boolean result = false;
         File folder = Environment.getExternalStorageDirectory();
         folder = new File(folder, "FacemaskTestData/Images");
         if (folder.exists()) {
@@ -42,15 +43,16 @@ class ImageHandler {
                 File image = sImageFiles[0];
                 Bitmap bitmap = MediaUtils.createImageThumbnail(image.getAbsolutePath());
                 preview.setRGBBitmap(bitmap);
+                result = true;
             } else {
                 Toast.makeText(context, context.getString(R.string.folder_images_is_empty),
-                        Toast.LENGTH_SHORT).show();
+                        Toast.LENGTH_LONG).show();
             }
         } else {
             Toast.makeText(context, context.getString(R.string.folder_images_not_found),
-                    Toast.LENGTH_SHORT).show();
+                    Toast.LENGTH_LONG).show();
         }
-
+        return result;
     }
 
     public static boolean isRunning() {

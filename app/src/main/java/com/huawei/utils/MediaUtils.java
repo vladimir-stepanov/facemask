@@ -17,10 +17,10 @@ import java.util.Map;
 
 public class MediaUtils {
 
+    public static final int HORIZONTAL_SIZE_THUMBNAIL = 250;
+    public static final int VERTICAL_SIZE_THUMBNAIL = 250;
     private final static String TAG = "MediaUtils";
-
     private static final int FILE_TYPE_UNKNOWN = 0;
-
     // Video file types
     private static final int FILE_TYPE_MP4 = 21;
     private static final int FILE_TYPE_M4V = 22;
@@ -29,7 +29,6 @@ public class MediaUtils {
     private static final int FILE_TYPE_ASF = 25;
     private static final int FIRST_VIDEO_FILE_TYPE = FILE_TYPE_MP4;
     private static final int LAST_VIDEO_FILE_TYPE = FILE_TYPE_ASF;
-
     // Image file types
     private static final int FILE_TYPE_JPEG = 31;
     private static final int FILE_TYPE_GIF = 32;
@@ -38,15 +37,10 @@ public class MediaUtils {
     private static final int FILE_TYPE_WBMP = 35;
     private static final int FIRST_IMAGE_FILE_TYPE = FILE_TYPE_JPEG;
     private static final int LAST_IMAGE_FILE_TYPE = FILE_TYPE_WBMP;
-
     private static final Map<String, Integer> sFileTypeMap = new HashMap<>();
-
     /* Options used internally. */
     private static final int OPTIONS_SCALE_UP = 0x1;
     private static final int OPTIONS_RECYCLE_INPUT = 0x2;
-
-    public static final int HORIZONTAL_SIZE_THUMBNAIL = 250;
-    public static final int VERTICAL_SIZE_THUMBNAIL = 250;
 
     static {
 

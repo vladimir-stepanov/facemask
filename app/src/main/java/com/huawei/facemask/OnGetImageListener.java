@@ -29,11 +29,11 @@ import com.huawei.dlib.ImageUtils;
  */
 class OnGetImageListener implements OnImageAvailableListener {
 
+    static final int DLIB_FACE_RECOGNITION = 1;
+    static final int GMS_FACE_RECOGNITION = 2;
     private static final String TAG = "OnGetImageListener";
     private static final boolean GRAY = false;
     private static final boolean CONTRAST = true;
-    static final int DLIB_FACE_RECOGNITION = 1;
-    static final int GMS_FACE_RECOGNITION = 2;
     static float SCALE = 0.5f;
     private final Point mScreenSize = new Point();
     private Activity mActivity;
@@ -81,12 +81,12 @@ class OnGetImageListener implements OnImageAvailableListener {
         Dlib.setLandmarksDetection(detectLandmarks);
     }
 
-    void setOperational(boolean value) {
-        mOperational = value;
-    }
-
     private boolean isOperational() {
         return mOperational;
+    }
+
+    void setOperational(boolean value) {
+        mOperational = value;
     }
 
     void setBrightness(float brightness) {

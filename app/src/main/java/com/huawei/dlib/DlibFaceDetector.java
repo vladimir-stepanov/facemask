@@ -123,7 +123,7 @@ public class DlibFaceDetector {
         }
         setInitialising(true);
         if (!new File(mFaceShapeModelPath).exists()) {
-            //copyFileFromRaw(R.raw.shape_predictor_68_face_landmarks, mFaceShapeModelPath);
+            copyFileFromRaw(R.raw.shape_predictor_68_face_landmarks, mFaceShapeModelPath);
         }
         jniInit(mFaceShapeModelPath);
         setInitiated(true);

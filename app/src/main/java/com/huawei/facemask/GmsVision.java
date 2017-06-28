@@ -21,15 +21,14 @@ import static com.huawei.facemask.OnGetImageListener.SCALE;
 
 class GmsVision {
 
-    private static Paint sFaceLandmarkPaint = new Paint();
+    private static final Paint sFaceLandmarkPaint = new Paint();
+    private static Detector<Face> sFaceDetector;
 
     static {
         sFaceLandmarkPaint.setColor(Color.WHITE);
         sFaceLandmarkPaint.setStyle(Paint.Style.STROKE);
         sFaceLandmarkPaint.setStrokeWidth(2f * SCALE);
     }
-
-    private static Detector<Face> sFaceDetector;
 
     static void release() {
         if (sFaceDetector != null) {

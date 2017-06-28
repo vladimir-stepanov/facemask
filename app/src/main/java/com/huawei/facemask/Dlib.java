@@ -19,17 +19,16 @@ import static com.huawei.facemask.OnGetImageListener.SCALE;
 
 class Dlib {
 
-    private static Paint sFaceLandmarkPaint = new Paint();
+    private static final Paint sFaceLandmarkPaint = new Paint();
+    @SuppressLint("StaticFieldLeak")
+    private static final DlibFaceDetector sFaceDetector = DlibFaceDetector.getInstance();
+    private static boolean sDetectLandmarks;
 
     static {
         sFaceLandmarkPaint.setColor(Color.WHITE);
         sFaceLandmarkPaint.setStyle(Paint.Style.STROKE);
         sFaceLandmarkPaint.setStrokeWidth(2f * SCALE);
     }
-
-    private static boolean sDetectLandmarks;
-    @SuppressLint("StaticFieldLeak")
-    private static DlibFaceDetector sFaceDetector = DlibFaceDetector.getInstance();
 
     static void setLandmarksDetection(boolean detectLandmarks) {
         sDetectLandmarks = detectLandmarks;

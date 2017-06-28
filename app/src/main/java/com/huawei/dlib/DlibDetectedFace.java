@@ -12,11 +12,11 @@ import java.util.ArrayList;
 @SuppressWarnings("CanBeFinal")
 public final class DlibDetectedFace {
 
-    private final ArrayList<Point> mLandmarkPoints = new ArrayList<>();
     public final float[] mAngles = new float[3];
     public final float[] mModelView = new float[16];
     public final float[] mFrustumScale = new float[3];
     public final float[] mLandmarks = new float[2 * 68];
+    private final ArrayList<Point> mLandmarkPoints = new ArrayList<>();
     private int mLeft = 0;
     private int mTop = 0;
     private int mRight = 0;

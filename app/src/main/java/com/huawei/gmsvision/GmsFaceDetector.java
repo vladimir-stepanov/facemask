@@ -43,7 +43,7 @@ import java.util.Arrays;
  */
 public class GmsFaceDetector extends Detector<Face> {
     private static final String TAG = "GmsFaceDetector";
-    private Detector<Face> mDelegate;
+    private final Detector<Face> mDelegate;
 
     /**
      * Creates a safe face detector to wrap and protect an underlying face detector from images that

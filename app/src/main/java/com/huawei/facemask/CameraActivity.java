@@ -127,6 +127,33 @@ public class CameraActivity extends Activity implements View.OnClickListener {
 
     private View mBottomPanel;
     private TextView mImageSizeCaption;
+    /**
+     * {@link android.view.TextureView.SurfaceTextureListener} handles several lifecycle events on a
+     * {@link TextureView}.
+     */
+    private final TextureView.SurfaceTextureListener surfaceTextureListener =
+            new TextureView.SurfaceTextureListener() {
+                @Override
+                public void onSurfaceTextureAvailable(
+                        final SurfaceTexture texture, final int width, final int height) {
+                    openCamera(width, height);
+                }
+
+                @Override
+                public void onSurfaceTextureSizeChanged(
+                        final SurfaceTexture texture, final int width, final int height) {
+                    configureTransform(width, height);
+                }
+
+                @Override
+                public boolean onSurfaceTextureDestroyed(final SurfaceTexture texture) {
+                    return true;
+                }
+
+                @Override
+                public void onSurfaceTextureUpdated(final SurfaceTexture texture) {
+                }
+            };
     private TextView mImageBrightnessCaption;
     private TextView mImageContrastCaption;
     private ImageView mVisibilitySwitcher;
@@ -137,15 +164,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     private RadioButton mGmsRadioButton;
     private ImageView mLandmarksDetection;
     private boolean mLandmarksDetectionEnabled;
-    private SeekBar mBrightnessBar;
-    private SeekBar mContrastBar;
-    private SeekBar mPreviewSizeBar;
-    private int mSourceForRecognition;
-    private ImageView mSourceCameraButton;
-    private ImageView mSourceImagesButton;
-    private ImageView mSourceVideoButton;
-
-//    private FaceView mFaceView;
     /**
      * {@link android.hardware.camera2.CameraDevice.StateCallback}
      * is called when {@link CameraDevice} changes its state.
@@ -178,33 +196,15 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     finish();
                 }
             };
-    /**
-     * {@link android.view.TextureView.SurfaceTextureListener} handles several lifecycle events on a
-     * {@link TextureView}.
-     */
-    private final TextureView.SurfaceTextureListener surfaceTextureListener =
-            new TextureView.SurfaceTextureListener() {
-                @Override
-                public void onSurfaceTextureAvailable(
-                        final SurfaceTexture texture, final int width, final int height) {
-                    openCamera(width, height);
-                }
+    private SeekBar mBrightnessBar;
+    private SeekBar mContrastBar;
+    private SeekBar mPreviewSizeBar;
+    private int mSourceForRecognition;
+    private ImageView mSourceCameraButton;
 
-                @Override
-                public void onSurfaceTextureSizeChanged(
-                        final SurfaceTexture texture, final int width, final int height) {
-                    configureTransform(width, height);
-                }
-
-                @Override
-                public boolean onSurfaceTextureDestroyed(final SurfaceTexture texture) {
-                    return true;
-                }
-
-                @Override
-                public void onSurfaceTextureUpdated(final SurfaceTexture texture) {
-                }
-            };
+//    private FaceView mFaceView;
+    private ImageView mSourceImagesButton;
+    private ImageView mSourceVideoButton;
 
     /**
      * Given {@code choices} of {@code Size}s supported by a camera, chooses the smallest one whose
@@ -417,6 +417,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 }
                 mPreferences.edit().putBoolean(KEY_LANDMARKS_DETECTION, mLandmarksDetectionEnabled).apply();
                 GmsVision.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
+                Dlib.setLandmarksDetection(mLandmarksDetectionEnabled);
             }
         });
         if (mLandmarksDetectionEnabled) {
@@ -843,49 +844,58 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mTextureView.setTransform(matrix);
     }
 
-    private void setSourceForRecognition(int source) {
-        if (mSourceForRecognition == SOURCE_CAMERA) {
-            stopListenToCamera();
-        }
+    private boolean setSourceForRecognition(int source) {
+        boolean result = false;
         boolean sourceChanged = mSourceForRecognition != source;
-        mSourceForRecognition = source;
         if (sourceChanged) {
             if (source == SOURCE_IMAGES) {
-                ImageHandler.init(this, mFloatingWindow);
-                mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_play);
-                mImageSizeCaption.setText(getString(R.string.image_size,
-                        MediaUtils.HORIZONTAL_SIZE_THUMBNAIL, MediaUtils.VERTICAL_SIZE_THUMBNAIL));
-            } else {
+                if (ImageHandler.init(this, mFloatingWindow)) {
+                    stopListenToCamera();
+                    ImageHandler.init(this, mFloatingWindow);
+                    result = true;
+                    mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_play);
+                    mImageSizeCaption.setText(getString(R.string.image_size,
+                            MediaUtils.HORIZONTAL_SIZE_THUMBNAIL, MediaUtils.VERTICAL_SIZE_THUMBNAIL));
+                }
+            } else if (source == SOURCE_VIDEO) {
                 ImageHandler.stop();
+            } else if (source == SOURCE_CAMERA) {
+                ImageHandler.stop();
+                startListenToCamera();
+                result = true;
             }
         }
-
-        if (mSourceForRecognition == SOURCE_CAMERA) {
-            startListenToCamera();
+        if (result) {
+            mSourceForRecognition = source;
         }
-        mTextureView.setAlpha(source == SOURCE_CAMERA ? 1f : 0f);
-        mPreviewSizeBar.setVisibility(source == SOURCE_CAMERA ? View.VISIBLE : View.INVISIBLE);
-        mSwitchCameraButton.setVisibility(source == SOURCE_CAMERA ? View.VISIBLE : View.GONE);
-        mMediaPlayPauseButton.setVisibility(source == SOURCE_CAMERA ? View.GONE : View.VISIBLE);
+
+        mTextureView.setAlpha(mSourceForRecognition == SOURCE_CAMERA ? 1f : 0f);
+        mPreviewSizeBar.setVisibility(mSourceForRecognition == SOURCE_CAMERA ? View.VISIBLE : View.INVISIBLE);
+        mSwitchCameraButton.setVisibility(mSourceForRecognition == SOURCE_CAMERA ? View.VISIBLE : View.GONE);
+        mMediaPlayPauseButton.setVisibility(mSourceForRecognition == SOURCE_CAMERA ? View.GONE : View.VISIBLE);
+        return result;
     }
 
     @Override
     public void onClick(View view) {
         if (view == mSourceCameraButton) {
-            setSourceForRecognition(SOURCE_CAMERA);
-            mSourceCameraButton.setImageResource(R.drawable.ic_camera_selected);
-            mSourceImagesButton.setImageResource(R.drawable.ic_images);
-            mSourceVideoButton.setImageResource(R.drawable.ic_video);
+            if (setSourceForRecognition(SOURCE_CAMERA)) {
+                mSourceCameraButton.setImageResource(R.drawable.ic_camera_selected);
+                mSourceImagesButton.setImageResource(R.drawable.ic_images);
+                mSourceVideoButton.setImageResource(R.drawable.ic_video);
+            }
         } else if (view == mSourceImagesButton) {
-            setSourceForRecognition(SOURCE_IMAGES);
-            mSourceCameraButton.setImageResource(R.drawable.ic_camera);
-            mSourceImagesButton.setImageResource(R.drawable.ic_images_selected);
-            mSourceVideoButton.setImageResource(R.drawable.ic_video);
+            if (setSourceForRecognition(SOURCE_IMAGES)) {
+                mSourceCameraButton.setImageResource(R.drawable.ic_camera);
+                mSourceImagesButton.setImageResource(R.drawable.ic_images_selected);
+                mSourceVideoButton.setImageResource(R.drawable.ic_video);
+            }
         } else if (view == mSourceVideoButton) {
-            setSourceForRecognition(SOURCE_VIDEO);
-            mSourceCameraButton.setImageResource(R.drawable.ic_camera);
-            mSourceImagesButton.setImageResource(R.drawable.ic_images);
-            mSourceVideoButton.setImageResource(R.drawable.ic_video_selected);
+            if (setSourceForRecognition(SOURCE_VIDEO)) {
+                mSourceCameraButton.setImageResource(R.drawable.ic_camera);
+                mSourceImagesButton.setImageResource(R.drawable.ic_images);
+                mSourceVideoButton.setImageResource(R.drawable.ic_video_selected);
+            }
         } else if (view == mSwitchCameraButton) {
             stopListenToCamera();
             if (mCameraFacing == CameraCharacteristics.LENS_FACING_BACK) {
