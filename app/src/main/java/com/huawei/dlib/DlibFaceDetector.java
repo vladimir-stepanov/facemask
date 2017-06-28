@@ -6,6 +6,8 @@ import android.graphics.Bitmap;
 import android.os.Environment;
 import android.util.Log;
 
+import com.huawei.facemask.R;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

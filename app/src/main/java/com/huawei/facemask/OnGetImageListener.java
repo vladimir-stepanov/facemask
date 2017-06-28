@@ -89,10 +89,6 @@ class OnGetImageListener implements OnImageAvailableListener {
         return mOperational;
     }
 
-    void setLandmarksDetection(boolean detectLandmarks) {
-        GmsVision.setLandmarksDetection(mActivity, detectLandmarks);
-    }
-
     void setBrightness(float brightness) {
         mBrightness = brightness;
     }

@@ -45,26 +45,28 @@ class Dlib {
                               final TextView mouth, Bitmap bitmap) {
         boolean result = false;
         List<DlibDetectedFace> faces = null;
-        if (sFaceDetector.isInitiated()) {
-            final long startTime = System.currentTimeMillis();
-            faces = sFaceDetector.detect(bitmap);
-            final long endTime = System.currentTimeMillis();
-            activity.runOnUiThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            score.setText(activity.getResources().getString(
-                                    R.string.face_recognition_time, endTime - startTime));
-                        }
-                    });
-        } else {
-            activity.runOnUiThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            score.setText(activity.getResources().getString(R.string.initializing_engine));
-                        }
-                    });
+        if (sFaceDetector != null) {
+            if (sFaceDetector.isInitiated()) {
+                final long startTime = System.currentTimeMillis();
+                faces = sFaceDetector.detect(bitmap);
+                final long endTime = System.currentTimeMillis();
+                activity.runOnUiThread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                score.setText(activity.getResources().getString(
+                                        R.string.face_recognition_time, endTime - startTime));
+                            }
+                        });
+            } else {
+                activity.runOnUiThread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                score.setText(activity.getResources().getString(R.string.initializing_engine));
+                            }
+                        });
+            }
         }
         if (faces != null && faces.size() > 0) {
             result = true;

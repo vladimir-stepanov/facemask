@@ -51,7 +51,19 @@
         </LinearLayout>
 
         <ImageView
-            android:id="@+id/switch_front_button"
+            android:id="@+id/media_play_pause_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:clickable="true"
+            android:contentDescription="@string/app_name"
+            android:padding="@dimen/footer_panel_padding"
+            android:src="@drawable/ic_media_play"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/switch_camera_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
