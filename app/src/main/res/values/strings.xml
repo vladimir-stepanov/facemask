@@ -12,6 +12,8 @@
     <string name="dlib_face_recognition">DLIB</string>
     <string name="gms_vision_face_recognition">GMS Vision</string>
     <string name="landmarks_caption">Landmarks</string>
-    <string name="folder_images_not_found">ERROR!\nFolder FacemaskTestData/Images was not found.</string>
-    <string name="folder_images_is_empty">ERROR!\nFolder FacemaskTestData/Images is empty.</string>
+    <string name="folder_images_not_found">ERROR!\nFolder Facemask/Images was not found.</string>
+    <string name="folder_images_is_empty">ERROR!\nFolder Facemask/Images is empty.</string>
+    <string name="folder_movies_not_found">ERROR!\nFolder Facemask/Movies was not found.</string>
+    <string name="folder_movies_is_empty">ERROR!\nFolder Facemask/Movies is empty.</string>
 </resources>

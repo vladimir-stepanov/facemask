@@ -96,7 +96,7 @@ public class MediaUtils {
      *
      * @param filePath the path of video file
      */
-    public static Bitmap createVideoThumbnail(String filePath) {
+    public static Bitmap createMovieThumbnail(String filePath) {
         Bitmap bitmap;
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(filePath);

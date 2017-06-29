@@ -31,7 +31,7 @@ class ImageHandler {
         sRunning = false;
         boolean result = false;
         File folder = Environment.getExternalStorageDirectory();
-        folder = new File(folder, "FacemaskTestData/Images");
+        folder = new File(folder, "Facemask/Images");
         if (folder.exists()) {
             sImageFiles = folder.listFiles(new FilenameFilter() {
                 @Override
