@@ -154,8 +154,9 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 @Override
                 public void onSurfaceTextureUpdated(final SurfaceTexture texture) {
                     if (mSourceForRecognition == SOURCE_MOVIE) {
-                        Bitmap bmp = mTextureView.getBitmap();
-                        mFloatingWindow.setRGBBitmap(bmp);
+                        Bitmap src = mTextureView.getBitmap();
+
+                        mFloatingWindow.setRGBBitmap(src);
                     }
                 }
             };
@@ -527,6 +528,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         AssetManager assetManager = getAssets();
         MainLib.onCreate();
         MainLib.setAssetManager(assetManager);
+        configureMovieTransform(mTextureView.getWidth(), mTextureView.getHeight());
         if (mFloatingWindow != null) {
             mFloatingWindow.show();
         }
@@ -864,6 +866,22 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         } else if (Surface.ROTATION_180 == rotation) {
             matrix.postRotate(180, centerX, centerY);
         }
+        mTextureView.setTransform(matrix);
+    }
+
+    private void configureMovieTransform(final int viewWidth, final int viewHeight) {
+        if (null == mTextureView || null == mCameraPreviewSize) {
+            return;
+        }
+        final Matrix matrix = new Matrix();
+        final RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
+        final RectF bufferRect = new RectF(0, 0, mCameraPreviewSize.getHeight(), mCameraPreviewSize.getWidth());
+        final float centerX = viewRect.centerX();
+        final float centerY = viewRect.centerY();
+        bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY());
+        matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL);
+        matrix.setScale((float) viewHeight / viewWidth, (float) viewWidth / viewHeight, centerX, centerY);
+        matrix.postRotate(90, centerX, centerY);
         mTextureView.setTransform(matrix);
     }
 
