@@ -155,8 +155,8 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 public void onSurfaceTextureUpdated(final SurfaceTexture texture) {
                     if (mSourceForRecognition == SOURCE_MOVIE) {
                         Bitmap src = mTextureView.getBitmap();
-
-                        mFloatingWindow.setRGBBitmap(src);
+                        MovieHandler.processImage(src, CameraActivity.this, mTextureView, mScore,
+                                mCameraPreviewFrameRate, mMouthOpen, mFloatingWindow);
                     }
                 }
             };
@@ -904,12 +904,12 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                             MediaUtils.HORIZONTAL_SIZE_THUMBNAIL, MediaUtils.VERTICAL_SIZE_THUMBNAIL));
                 }
             } else if (source == SOURCE_MOVIE) {
-                if (MovieHandler.init(this, mFloatingWindow)) {
+                if (MovieHandler.init(this, mFloatingWindow, mInferenceHandler)) {
                     ImageHandler.stop();
                     if (mSourceForRecognition == SOURCE_CAMERA) {
                         stopListenToCamera();
                     }
-                    MovieHandler.init(this, mFloatingWindow);
+                    MovieHandler.init(this, mFloatingWindow, mInferenceHandler);
                     result = true;
                     mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_play);
                     mImageSizeCaption.setText(getString(R.string.image_size,
