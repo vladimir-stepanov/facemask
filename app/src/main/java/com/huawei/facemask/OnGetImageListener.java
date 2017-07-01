@@ -34,7 +34,7 @@ class OnGetImageListener implements OnImageAvailableListener {
     private static final String TAG = "OnGetImageListener";
     private static final boolean GRAY = false;
     private static final boolean CONTRAST = true;
-    static float SCALE = 0.5f;
+    static float scale = 0.5f;
     private final Point mScreenSize = new Point();
     private Activity mActivity;
     //    private FaceView mFaceView;
@@ -50,13 +50,16 @@ class OnGetImageListener implements OnImageAvailableListener {
     private TextView mScore;
     private TextView mFrameRate;
     private TextView mMouthOpen;
-    private long mLastElapsedTime = 0;
-    private float mLastFrameRate = 0;
+    private static long sLastElapsedTime = 0;
+    private static float sLastFrameRate = 0;
     private FloatingPreviewWindow mFloatingWindow;
     private float mBrightness;
     private float mContrast;
     private int mFaceRecognition = DLIB_FACE_RECOGNITION;
     private boolean mOperational;
+    private static long sFrameCount;
+    private static float sFrameSum;
+    private static float sAverageFrameRate;
     private int mCameraFacing = CameraCharacteristics.LENS_FACING_FRONT;
 
     //    FloatingPreviewWindow initialize(Activity activity, FaceView faceView,
@@ -78,40 +81,54 @@ class OnGetImageListener implements OnImageAvailableListener {
         Display display = ((WindowManager) activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         display.getRealSize(mScreenSize);
         GmsVision.setLandmarksDetection(activity, detectLandmarks);
-        Dlib.setLandmarksDetection(detectLandmarks);
+        Dlib.setLandmarksDetection(activity, detectLandmarks);
     }
 
     private boolean isOperational() {
         return mOperational;
     }
 
+    static void clearStatistics() {
+        sLastElapsedTime = 0;
+        sLastFrameRate = 0;
+        sFrameCount = 0;
+        sFrameSum = 0;
+        Dlib.clearStatistics();
+        GmsVision.clearStatistics();
+    }
+
     void setOperational(boolean value) {
+        clearStatistics();
         mOperational = value;
     }
 
     void setBrightness(float brightness) {
+        clearStatistics();
         mBrightness = brightness;
     }
 
     void setContrast(float contrast) {
+        clearStatistics();
         mContrast = contrast;
     }
 
     void setCameraFacing(int cameraFacing) {
+        clearStatistics();
         mCameraFacing = cameraFacing;
     }
 
     void setFaceRecognition(int recognition) {
+        clearStatistics();
         mFaceRecognition = recognition;
     }
 
     private Bitmap imageSideInversion(Bitmap src) {
         Matrix sideInversion = new Matrix();
         if (mCameraFacing == CameraCharacteristics.LENS_FACING_FRONT) {
-            sideInversion.setScale(SCALE, -SCALE);
+            sideInversion.setScale(scale, -scale);
             sideInversion.postRotate(-90);
         } else {
-            sideInversion.setScale(SCALE, SCALE);
+            sideInversion.setScale(scale, scale);
             sideInversion.postRotate(90);
         }
         Bitmap outBmp;
@@ -148,30 +165,37 @@ class OnGetImageListener implements OnImageAvailableListener {
 
     @Override
     public void onImageAvailable(final ImageReader reader) {
+        Image image = null;
         if (!isOperational()) {
-            reader.acquireLatestImage().close();
+            image = reader.acquireLatestImage();
+            if (image != null) {
+                image.close();
+            }
             return;
         }
-        Image image = null;
+
         long elapsedTime = SystemClock.elapsedRealtime();
 
-        if (mLastElapsedTime != 0) {
-            float frameRate = 1000f / (elapsedTime - mLastElapsedTime);
-            if (mLastFrameRate == 0) {
-                mLastFrameRate = frameRate;
+        if (sLastElapsedTime != 0) {
+            float frameRate = 1000f / (elapsedTime - sLastElapsedTime);
+            if (sLastFrameRate == 0) {
+                sLastFrameRate = frameRate;
             } else {
-                mLastFrameRate = ((mLastFrameRate * 29) + frameRate) / 30;
+                sFrameSum += frameRate;
+                sFrameCount++;
+                sAverageFrameRate = sFrameSum / sFrameCount;
+                sLastFrameRate = (sLastFrameRate + frameRate) / 2;
             }
             mActivity.runOnUiThread(
                     new Runnable() {
                         @Override
                         public void run() {
                             mFrameRate.setText(mActivity.getResources().getString(
-                                    R.string.camera_preview_frame_rate, mLastFrameRate));
+                                    R.string.camera_preview_frame_rate, sLastFrameRate, sAverageFrameRate));
                         }
                     });
         }
-        mLastElapsedTime = elapsedTime;
+        sLastElapsedTime = elapsedTime;
 
         try {
             image = reader.acquireLatestImage();
@@ -245,7 +269,9 @@ class OnGetImageListener implements OnImageAvailableListener {
                                 GmsVision.detectFace(mActivity, mScore, mCroppedBitmap);
                                 break;
                         }
-                        mFloatingWindow.setRGBBitmap(mCroppedBitmap);
+                        if (isOperational()) {
+                            mFloatingWindow.setRGBBitmap(mCroppedBitmap);
+                        }
                         mIsComputing = false;
                     }
                 });

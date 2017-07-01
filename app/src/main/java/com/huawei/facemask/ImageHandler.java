@@ -27,8 +27,7 @@ class ImageHandler {
     private static float sBrightness;
     private static float sContrast;
 
-    static boolean init(Context context, FloatingPreviewWindow preview) {
-        sRunning = false;
+    static boolean haveImages(Context context) {
         boolean result = false;
         File folder = Environment.getExternalStorageDirectory();
         folder = new File(folder, "Facemask/Images");
@@ -40,9 +39,6 @@ class ImageHandler {
                 }
             });
             if (sImageFiles.length > 0) {
-                File image = sImageFiles[0];
-                Bitmap bitmap = MediaUtils.createImageThumbnail(image.getAbsolutePath());
-                preview.setRGBBitmap(bitmap);
                 result = true;
             } else {
                 Toast.makeText(context, context.getString(R.string.folder_images_is_empty),
@@ -55,6 +51,19 @@ class ImageHandler {
         return result;
     }
 
+    static void clearStatistics() {
+        Dlib.clearStatistics();
+        GmsVision.clearStatistics();
+    }
+
+    static void init(FloatingPreviewWindow preview) {
+        clearStatistics();
+        sRunning = false;
+        File image = sImageFiles[0];
+        Bitmap bitmap = MediaUtils.createImageThumbnail(image.getAbsolutePath());
+        preview.setRGBBitmap(bitmap);
+    }
+
     public static boolean isRunning() {
         return sRunning;
     }
@@ -64,19 +73,23 @@ class ImageHandler {
     }
 
     static void setBrightness(float brightness) {
+        clearStatistics();
         sBrightness = brightness;
     }
 
     static void setContrast(float contrast) {
+        clearStatistics();
         sContrast = contrast;
     }
 
     static void setFaceRecognition(int feature) {
+        clearStatistics();
         sFaceRecognition = feature;
     }
 
     public static void start(final Activity activity, final TextView score,
                              final TextView mouthOpen, final FloatingPreviewWindow preview) {
+        clearStatistics();
         AsyncActionHandler.post(new Runnable() {
             @Override
             public void run() {

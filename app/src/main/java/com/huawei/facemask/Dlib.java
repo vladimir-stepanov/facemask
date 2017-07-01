@@ -2,11 +2,13 @@ package com.huawei.facemask;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.util.Log;
 import android.widget.TextView;
 
 import com.huawei.dlib.DlibDetectedFace;
@@ -15,22 +17,32 @@ import com.huawei.dlib.DlibFaceDetector;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.huawei.facemask.OnGetImageListener.SCALE;
-
 class Dlib {
 
     private static final Paint sFaceLandmarkPaint = new Paint();
     @SuppressLint("StaticFieldLeak")
-    private static final DlibFaceDetector sFaceDetector = DlibFaceDetector.getInstance();
+    private static DlibFaceDetector sFaceDetector;
     private static boolean sDetectLandmarks;
+    private static long sRecognitionTime;
+    private static long sRecognitionTimeSum;
+    private static long sRecognizedFrameCount;
+    private static long sFrameCount;
 
     static {
         sFaceLandmarkPaint.setColor(Color.WHITE);
         sFaceLandmarkPaint.setStyle(Paint.Style.STROKE);
-        sFaceLandmarkPaint.setStrokeWidth(2f * SCALE);
     }
 
-    static void setLandmarksDetection(boolean detectLandmarks) {
+    static void clearStatistics() {
+        sRecognitionTime = 0;
+        sRecognitionTimeSum = 0;
+        sRecognizedFrameCount = 0;
+        sFrameCount = 0;
+    }
+
+    static void setLandmarksDetection(Context context, boolean detectLandmarks) {
+        clearStatistics();
+        sFaceDetector = DlibFaceDetector.getInstance(context);
         sDetectLandmarks = detectLandmarks;
     }
 
@@ -40,21 +52,37 @@ class Dlib {
         }
     }
 
-    static boolean detectFace(final Activity activity, final TextView score,
-                              final TextView mouth, Bitmap bitmap) {
-        boolean result = false;
+    static void detectFace(final Activity activity, final TextView score,
+                           final TextView mouth, Bitmap bitmap) {
         List<DlibDetectedFace> faces = null;
+        Log.e("Dlib", "sFaceDetector = " + sFaceDetector);
         if (sFaceDetector != null) {
+            Log.e("Dlib", "sFaceDetector.isInitiated() = " + sFaceDetector.isInitiated());
             if (sFaceDetector.isInitiated()) {
                 final long startTime = System.currentTimeMillis();
                 faces = sFaceDetector.detect(bitmap);
                 final long endTime = System.currentTimeMillis();
+                sRecognitionTime = endTime - startTime;
+                sRecognitionTimeSum += sRecognitionTime;
+                sFrameCount++;
+                Log.e("Dlib", "sFrameCount = " + sFrameCount);
+                if (faces != null && faces.size() > 0) {
+                    sRecognizedFrameCount++;
+                }
+
                 activity.runOnUiThread(
                         new Runnable() {
                             @Override
                             public void run() {
+                                long percent = 0;
+                                long average = 0;
+                                if (sFrameCount != 0) {
+                                    percent = sRecognizedFrameCount * 100 / sFrameCount;
+                                    average = sRecognitionTimeSum / sFrameCount;
+                                }
                                 score.setText(activity.getResources().getString(
-                                        R.string.face_recognition_time, endTime - startTime));
+                                        R.string.face_recognition_time,
+                                        sRecognitionTime, average, percent));
                             }
                         });
             } else {
@@ -68,19 +96,20 @@ class Dlib {
             }
         }
         if (faces != null && faces.size() > 0) {
-            result = true;
             // Draw one face only on preview bitmap
             DlibDetectedFace face = faces.get(0);
             Canvas canvas = new Canvas(bitmap);
+            float scale = (float) bitmap.getHeight() / 192;
             // Draw box
-            sFaceLandmarkPaint.setColor(Color.DKGRAY);
+            sFaceLandmarkPaint.setColor(Color.RED);
+            sFaceLandmarkPaint.setStrokeWidth(scale);
             canvas.drawRect(face.getBounds(), sFaceLandmarkPaint);
             if (sDetectLandmarks) {
                 // Draw landmarks
                 sFaceLandmarkPaint.setColor(Color.WHITE);
                 ArrayList<Point> landmarks = face.getFaceLandmarks();
                 for (Point point : landmarks) {
-                    canvas.drawCircle(point.x, point.y, 3.0f * SCALE, sFaceLandmarkPaint);
+                    canvas.drawCircle(point.x, point.y, scale / 2, sFaceLandmarkPaint);
                 }
                 // draw a line sticking out of the nose
                 sFaceLandmarkPaint.setColor(Color.BLUE);
@@ -117,7 +146,6 @@ class Dlib {
                         }
                     });
         }
-        return result;
     }
 
 }

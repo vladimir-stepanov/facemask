@@ -49,12 +49,6 @@ public class DlibFaceDetector {
                 + File.separator + "shape_predictor_68_face_landmarks.dat";
     }
 
-    public static DlibFaceDetector getInstance() {
-        synchronized (LOCK) {
-            return sDlibFaceDetector;
-        }
-    }
-
     public static DlibFaceDetector getInstance(Context context) {
         synchronized (LOCK) {
             if (sDlibFaceDetector == null) {

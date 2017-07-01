@@ -17,17 +17,18 @@ import com.google.android.gms.vision.face.FaceDetector;
 import com.google.android.gms.vision.face.Landmark;
 import com.huawei.gmsvision.GmsFaceDetector;
 
-import static com.huawei.facemask.OnGetImageListener.SCALE;
-
 class GmsVision {
 
     private static final Paint sFaceLandmarkPaint = new Paint();
     private static Detector<Face> sFaceDetector;
+    private static long sRecognitionTime;
+    private static long sRecognitionTimeSum;
+    private static long sRecognizedFrameCount;
+    private static long sFrameCount;
 
     static {
         sFaceLandmarkPaint.setColor(Color.WHITE);
         sFaceLandmarkPaint.setStyle(Paint.Style.STROKE);
-        sFaceLandmarkPaint.setStrokeWidth(2f * SCALE);
     }
 
     static void release() {
@@ -36,7 +37,15 @@ class GmsVision {
         }
     }
 
+    static void clearStatistics() {
+        sRecognitionTime = 0;
+        sRecognitionTimeSum = 0;
+        sRecognizedFrameCount = 0;
+        sFrameCount = 0;
+    }
+
     static void setLandmarksDetection(Context context, boolean detectLandmarks) {
+        clearStatistics();
         if (sFaceDetector != null) {
             sFaceDetector.release();
         }
@@ -57,20 +66,33 @@ class GmsVision {
         }
     }
 
-    static boolean detectFace(final Activity activity, final TextView score, Bitmap bitmap) {
+    static void detectFace(final Activity activity, final TextView score, Bitmap bitmap) {
         SparseArray<Face> faces = null;
-        boolean result = false;
         if (sFaceDetector.isOperational()) {
             final long startTime = System.currentTimeMillis();
             Frame frame = new Frame.Builder().setBitmap(bitmap).build();
             faces = sFaceDetector.detect(frame);
             final long endTime = System.currentTimeMillis();
+            sRecognitionTime = endTime - startTime;
+            sRecognitionTimeSum += sRecognitionTime;
+            sFrameCount++;
+            if (faces != null && faces.size() > 0) {
+                sRecognizedFrameCount++;
+            }
+
             activity.runOnUiThread(
                     new Runnable() {
                         @Override
                         public void run() {
+                            long percent = 0;
+                            long average = 0;
+                            if (sFrameCount != 0) {
+                                percent = sRecognizedFrameCount * 100 / sFrameCount;
+                                average = sRecognitionTimeSum / sFrameCount;
+                            }
                             score.setText(activity.getResources().getString(
-                                    R.string.face_recognition_time, endTime - startTime));
+                                    R.string.face_recognition_time,
+                                    sRecognitionTime, average, percent));
                         }
                     });
         } else {
@@ -84,11 +106,12 @@ class GmsVision {
         }
         if (faces != null && faces.size() > 0) {
             // Draw one face only on preview bitmap
-            result = true;
             Face face = faces.valueAt(0);
             Canvas canvas = new Canvas(bitmap);
+            float scale = (float) bitmap.getHeight() / 192;
             // Draw box
-            sFaceLandmarkPaint.setColor(Color.DKGRAY);
+            sFaceLandmarkPaint.setColor(Color.RED);
+            sFaceLandmarkPaint.setStrokeWidth(scale);
             canvas.drawRect(new Rect((int) face.getPosition().x,
                     (int) face.getPosition().y,
                     (int) (face.getPosition().x + face.getWidth()),
@@ -98,10 +121,9 @@ class GmsVision {
             for (Landmark landmark : face.getLandmarks()) {
                 int cx = (int) (landmark.getPosition().x);
                 int cy = (int) (landmark.getPosition().y);
-                canvas.drawCircle(cx, cy, 3.0f * SCALE, sFaceLandmarkPaint);
+                canvas.drawCircle(cx, cy, 1.5f * scale, sFaceLandmarkPaint);
             }
         }
-        return result;
     }
 
 }
