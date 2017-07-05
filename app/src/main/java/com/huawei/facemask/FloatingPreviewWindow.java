@@ -29,13 +29,14 @@ class FloatingPreviewWindow {
     private static final int DEFAULT_SCALE = 25;
     private final Context mContext;
     private final Handler mUIHandler;
+    private final Rect mWindowRect;
+    private final Point mScreenSize;
+    private final float mProportion;
+    private final SharedPreferences mPreferences;
     private WindowManager.LayoutParams mWindowParam;
     private WindowManager mWindowManager;
     private FloatCamView mRootView;
-    private Rect mWindowRect;
-    private Point mScreenSize;
     private boolean mVisible = true;
-    private SharedPreferences mPreferences;
 
     FloatingPreviewWindow(Context context) {
         mContext = context;
@@ -45,11 +46,10 @@ class FloatingPreviewWindow {
         Display display = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         display.getRealSize(mScreenSize);
 
+        mProportion = (float) mScreenSize.x / mScreenSize.y;
         // Default window size
-        int width = mScreenSize.x * DEFAULT_SCALE / 100;
         int height = mScreenSize.y * DEFAULT_SCALE / 100;
-        width = width > 0 && width < mScreenSize.x ? width : mScreenSize.x;
-        height = height > 0 && height < mScreenSize.y ? height : mScreenSize.y;
+        int width = (int) (height * mProportion);
         mWindowRect = new Rect(0, 0, width, height);
     }
 
@@ -94,7 +94,9 @@ class FloatingPreviewWindow {
             @Override
             public void run() {
                 if (mWindowManager != null) {
-                    mWindowManager.removeViewImmediate(mRootView);
+                    if (mRootView != null) {
+                        mWindowManager.removeViewImmediate(mRootView);
+                    }
                     mRootView = null;
                 }
                 mUIHandler.removeCallbacksAndMessages(null);
@@ -140,10 +142,9 @@ class FloatingPreviewWindow {
 
     @UiThread
     private final class FloatCamView extends FrameLayout {
-        // State objects and values related to gesture tracking.
-        private ScaleGestureDetector mScaleGestureDetector;
-
         private static final int MOVE_THRESHOLD = 10;
+        // State objects and values related to gesture tracking.
+        private final ScaleGestureDetector mScaleGestureDetector;
         private final WeakReference<FloatingPreviewWindow> mWeakRef;
         private final LayoutInflater mLayoutInflater;
         private final ImageView mColorView;
@@ -153,6 +154,37 @@ class FloatingPreviewWindow {
         private int mFirstY;
         private boolean mIsMoving = false;
         private boolean mIsScaling = false;
+        /**
+         * The scale listener, used for handling multi-finger scale gestures.
+         */
+        private final ScaleGestureDetector.OnScaleGestureListener mScaleGestureListener
+                = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+
+            private float mHeight;
+
+            @Override
+            public boolean onScaleBegin(ScaleGestureDetector detector) {
+                mIsScaling = true;
+                mHeight = mWindowRect.height();
+                return super.onScaleBegin(detector);
+            }
+
+            @Override
+            public void onScaleEnd(ScaleGestureDetector detector) {
+                mIsScaling = false;
+                super.onScaleEnd(detector);
+            }
+
+            @Override
+            public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
+                float scale = scaleGestureDetector.getScaleFactor();
+                mHeight = mHeight * scale;
+                if (Math.abs(mHeight - mWindowRect.height()) > MOVE_THRESHOLD) {
+                    setSize((int) mHeight);
+                }
+                return true;
+            }
+        };
         private long mLastTouchTime = 0;
 
         public FloatCamView(FloatingPreviewWindow window) {
@@ -206,7 +238,7 @@ class FloatingPreviewWindow {
             if (height > mScreenSize.y) {
                 height = mScreenSize.y;
             }
-            int width = height * mScreenSize.x / mScreenSize.y;
+            int width = (int) (height * mProportion);
             WindowManager.LayoutParams params = mWeakRef.get().mWindowParam;
             if (params != null) {
                 int left = params.x + (mWindowRect.width() - width) / 2;
@@ -236,7 +268,7 @@ class FloatingPreviewWindow {
                     if (mWindowRect.height() == mScreenSize.y) {
                         setSize(mScreenSize.y * DEFAULT_SCALE / 100);
                     } else {
-                        setPos(0, 0, mScreenSize.x, mScreenSize.y);
+                        setPos(0, 0, mScreenSize.x, (int) (mScreenSize.x / mProportion));
                     }
                     retVal = true;
                 } else {
@@ -246,6 +278,7 @@ class FloatingPreviewWindow {
             return retVal;
         }
 
+        @SuppressWarnings("SameReturnValue")
         private boolean onMoveEvent(MotionEvent event) {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
@@ -275,38 +308,6 @@ class FloatingPreviewWindow {
             }
             return true;
         }
-
-        /**
-         * The scale listener, used for handling multi-finger scale gestures.
-         */
-        private final ScaleGestureDetector.OnScaleGestureListener mScaleGestureListener
-                = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
-
-            private float mHeight;
-
-            @Override
-            public boolean onScaleBegin(ScaleGestureDetector detector) {
-                mIsScaling = true;
-                mHeight = mWindowRect.height();
-                return super.onScaleBegin(detector);
-            }
-
-            @Override
-            public void onScaleEnd(ScaleGestureDetector detector) {
-                mIsScaling = false;
-                super.onScaleEnd(detector);
-            }
-
-            @Override
-            public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
-                float scale = scaleGestureDetector.getScaleFactor();
-                mHeight = mHeight * scale;
-                if (Math.abs(mHeight - mWindowRect.height()) > MOVE_THRESHOLD) {
-                    setSize((int) mHeight);
-                }
-                return true;
-            }
-        };
 
         public void setRGBImageView(Bitmap rgb) {
             if (rgb != null && !rgb.isRecycled()) {

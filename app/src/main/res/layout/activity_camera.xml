@@ -17,34 +17,63 @@
 
     </FrameLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/topPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:background="@color/colorTransparentPanel"
-        android:orientation="vertical"
-        android:padding="@dimen/panel_padding">
+        android:background="@color/colorTransparentPanel">
 
-        <TextView
-            android:id="@+id/recognition_time"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/colorTextPanel" />
+            android:layout_alignParentTop="true"
+            android:orientation="vertical"
+            android:padding="@dimen/panel_padding">
 
-        <TextView
-            android:id="@+id/camera_preview_frame_rate"
-            android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/recognition_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorTextPanel" />
+
+            <TextView
+                android:id="@+id/camera_preview_frame_rate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorTextPanel" />
+
+            <TextView
+                android:id="@+id/mouth_open"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorTextPanel" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/media_play_pause_button"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/colorTextPanel" />
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:clickable="true"
+            android:contentDescription="@string/app_name"
+            android:padding="@dimen/footer_panel_padding"
+            android:src="@drawable/ic_media_play"
+            android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/mouth_open"
-            android:layout_width="match_parent"
+        <ImageView
+            android:id="@+id/switch_camera_button"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/colorTextPanel" />
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:clickable="true"
+            android:contentDescription="@string/app_name"
+            android:padding="@dimen/footer_panel_padding"
+            android:src="@drawable/ic_switch_camera_front" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <LinearLayout
         android:id="@+id/bottom_panel"
@@ -64,6 +93,15 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="@string/landmarks_caption"
+                    android:textColor="@color/colorTextPanel"
+                    android:textSize="11dp"
+                    tools:ignore="RelativeOverlap,SpUsage" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -96,7 +134,60 @@
                     android:padding="@dimen/footer_panel_padding"
                     android:src="@drawable/landmarks_ic_on" />
 
+                <ImageView
+                    android:id="@+id/source_video"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/landmarks_detection_switcher"
+                    android:clickable="true"
+                    android:contentDescription="@string/app_name"
+                    android:padding="@dimen/footer_panel_padding"
+                    android:src="@drawable/ic_video" />
+
+                <ImageView
+                    android:id="@+id/source_images"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/source_video"
+                    android:clickable="true"
+                    android:contentDescription="@string/app_name"
+                    android:padding="@dimen/footer_panel_padding"
+                    android:src="@drawable/ic_images" />
+
+                <ImageView
+                    android:id="@+id/source_camera"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/source_images"
+                    android:clickable="true"
+                    android:contentDescription="@string/app_name"
+                    android:padding="@dimen/footer_panel_padding"
+                    android:src="@drawable/ic_camera" />
+
             </RelativeLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                tools:ignore="RelativeOverlap">
+
+                <RadioButton
+                    android:id="@+id/haar_radio_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/haar_face_recognition" />
+
+                <RadioButton
+                    android:id="@+id/lbp_radio_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/lbp_face_recognition" />
+
+            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"

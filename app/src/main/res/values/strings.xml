@@ -1,14 +1,23 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name">AR Camera</string>
+    <string name="app_name">Facemask-test</string>
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device does not support Camera2 API.</string>
     <string name="initializing_engine">Initializing face recognition engine…</string>
-    <string name="face_recognition_time">Face recognition time: %d mSec</string>
-    <string name="camera_preview_frame_rate">Camera preview frame rate: %.2f fps</string>
+    <string name="face_recognition_time">Recognition time: <xliff:g id="time">%d</xliff:g> (<xliff:g id="average">%d</xliff:g>) mSec <xliff:g id="percent">%d</xliff:g>%%</string>
+    <string name="camera_preview_frame_rate">Frame rate: <xliff:g id="rate">%.2f</xliff:g> (<xliff:g id="average">%.1f</xliff:g>) fps</string>
     <string name="mouth_open">Mouth \"open\": %.2f</string>
     <string name="brightness_caption">Brightness: %.0f</string>
     <string name="contrast_caption">Contrast: %.2f</string>
     <string name="image_size">Size of image for recognition: <xliff:g id="width">%d</xliff:g>x<xliff:g id="height">%d</xliff:g>px</string>
-    <string name="dlib_face_recognition">DLIB Face Recognition</string>
-    <string name="gms_vision_face_recognition">GMS Vision Face Recognition</string>
+    <string name="vision_euler">EulerY: <xliff:g id="y">%.2f</xliff:g> EulerZ: <xliff:g id="z">%.2f</xliff:g></string>
+    <string name="dlib_face_recognition">DLIB</string>
+    <string name="gms_vision_face_recognition">GMS Vision</string>
+    <string name="haar_face_recognition">HAAR</string>
+    <string name="lbp_face_recognition">LBP</string>
+    <string name="landmarks_caption">Landmarks</string>
+    <string name="file_not_found">ERROR!\nFile \"%s\" not found.</string>
+    <string name="folder_images_not_found">ERROR!\nFolder Facemask/Images was not found.</string>
+    <string name="folder_images_is_empty">ERROR!\nFolder Facemask/Images is empty.</string>
+    <string name="folder_movies_not_found">ERROR!\nFolder Facemask/Movies was not found.</string>
+    <string name="folder_movies_is_empty">ERROR!\nFolder Facemask/Movies is empty.</string>
 </resources>

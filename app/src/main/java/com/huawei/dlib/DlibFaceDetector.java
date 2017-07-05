@@ -5,11 +5,11 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.huawei.facemask.R;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,6 +18,7 @@ public class DlibFaceDetector {
 
     private static final String TAG = "DlibFaceDetector";
     private static final Object LOCK = new Object();
+    private static final String PREDICTOR = "Facemask/shape_predictor_68_face_landmarks.dat";
     @SuppressLint("StaticFieldLeak")
     private static DlibFaceDetector sDlibFaceDetector = null;
 
@@ -43,14 +44,8 @@ public class DlibFaceDetector {
         mInitiated = false;
         mInitialising = false;
         mContext = context;
-        mFaceShapeModelPath = Environment.getExternalStorageDirectory().getAbsolutePath()
-                + File.separator + "shape_predictor_68_face_landmarks.dat";
-    }
-
-    public static DlibFaceDetector getInstance() {
-        synchronized (LOCK) {
-            return sDlibFaceDetector;
-        }
+        mFaceShapeModelPath = new File(Environment.getExternalStorageDirectory(),
+                PREDICTOR).getAbsolutePath();
     }
 
     public static DlibFaceDetector getInstance(Context context) {
@@ -89,39 +84,15 @@ public class DlibFaceDetector {
         }
     }
 
-    private void copyFileFromRaw(int id, String targetPath) {
-        InputStream in = mContext.getResources().openRawResource(id);
-        FileOutputStream out = null;
-        try {
-            out = new FileOutputStream(targetPath);
-            byte[] buff = new byte[1024];
-            int read;
-            while ((read = in.read(buff)) > 0) {
-                out.write(buff, 0, read);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (in != null) {
-                    in.close();
-                }
-                if (out != null) {
-                    out.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void init() {
+    private void init(Context context) {
         if (isInitialising()) {
             return;
         }
         setInitialising(true);
         if (!new File(mFaceShapeModelPath).exists()) {
-            //copyFileFromRaw(R.raw.shape_predictor_68_face_landmarks, mFaceShapeModelPath);
+            Toast.makeText(context, context.getString(R.string.file_not_found,
+                    PREDICTOR), Toast.LENGTH_LONG).show();
+            return;
         }
         jniInit(mFaceShapeModelPath);
         setInitiated(true);
@@ -129,7 +100,7 @@ public class DlibFaceDetector {
     }
 
     public void asyncInit() {
-        new InitThread().start();
+        new InitThread(mContext).start();
     }
 
     public List<DlibDetectedFace> detect(Bitmap bitmap) {
@@ -160,13 +131,15 @@ public class DlibFaceDetector {
     private synchronized native DlibDetectedFace[] jniBitmapDetect(Bitmap bitmap);
 
     private class InitThread extends Thread {
+        Context mContext;
 
-        InitThread() {
+        InitThread(Context context) {
             super("InitThread");
+            mContext = context;
         }
 
         public void run() {
-            init();
+            init(mContext);
         }
 
     }
