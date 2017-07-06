@@ -68,14 +68,14 @@ import grapevine.face1.MainLib;
 
 public class CameraActivity extends Activity implements View.OnClickListener {
 
-    private static final boolean SHOW_MASK = true;
+    private static final boolean SHOW_MASK = false;
     private static final String TAG = "CameraActivity";
     private static final String ERROR_DIALOG = "error_dialog";
     private static final String KEY_PREVIEW_VISIBLE = "key_preview_visible";
     private static final String KEY_DETECTION_FEATURE = "key_detection_feature";
     private static final String KEY_LANDMARKS_DETECTION = "key_landmarks_detection";
     private static final int MINIMUM_CAMERA_PREVIEW_SIZE = 300;
-    private static final int SEEK_BAR_MAX = 20;
+    private static final int SEEK_BAR_MAX = 10;
     private static final int SOURCE_CAMERA = 1;
     private static final int SOURCE_IMAGES = 2;
     private static final int SOURCE_MOVIE = 3;
@@ -331,7 +331,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     OnGetImageListener.scale = (float) progress / SEEK_BAR_MAX;
                     int width = (int) (mCameraPreviewSize.getWidth() * OnGetImageListener.scale);
                     int height = (int) (mCameraPreviewSize.getHeight() * OnGetImageListener.scale);
-                    mImageSizeCaption.setText(getString(R.string.image_size, width, height));
+                    mImageSizeCaption.setText(getString(R.string.image_size, height, width));
                 }
                 if (mSourceForRecognition == SOURCE_MOVIE) {
                     MovieHandler.scale = (float) progress / SEEK_BAR_MAX / 2;
@@ -696,7 +696,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     OnGetImageListener.scale = (float) mPreviewSizeBar.getProgress() / SEEK_BAR_MAX;
                     int width = (int) (mCameraPreviewSize.getWidth() * OnGetImageListener.scale);
                     int height = (int) (mCameraPreviewSize.getHeight() * OnGetImageListener.scale);
-                    mImageSizeCaption.setText(getString(R.string.image_size, width, height));
+                    mImageSizeCaption.setText(getString(R.string.image_size, height, width));
                     mCameraId = cameraId;
                     return;
                 }
@@ -1040,7 +1040,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_play);
                 } else {
                     ImageHandler.setShowMask(SHOW_MASK);
-                    ImageHandler.start(this, mScore, mFaceView, mMouthOpen, mFloatingWindow);
+                    ImageHandler.start(this, mScore, mFaceView, mMouthOpen, mFloatingWindow, mMediaPlayPauseButton);
                     mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_stop);
                 }
             }
@@ -1049,7 +1049,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     MovieHandler.stop();
                     mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_play);
                 } else {
-                    MovieHandler.start(this, mTextureView);
+                    MovieHandler.start(this, mTextureView, mMediaPlayPauseButton);
                     mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_stop);
                 }
             }

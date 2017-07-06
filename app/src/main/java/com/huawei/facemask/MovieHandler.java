@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.view.Surface;
 import android.view.TextureView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -239,7 +240,8 @@ class MovieHandler {
                 });
     }
 
-    public static void start(final Activity activity, final TextureView texture) {
+    public static void start(final Activity activity, final TextureView texture,
+                             final ImageView mMediaPlayPauseButton) {
         clearStatistics();
         AsyncActionHandler.post(new Runnable() {
             @Override
@@ -255,15 +257,23 @@ class MovieHandler {
                 File movie = sVideoFiles[index];
                 MediaPlayer player = MediaPlayer.create(activity, Uri.fromFile(movie));
                 player.setVolume(0f, 0f);
-                player.setLooping(true);
+                player.setLooping(false);
                 player.setSurface(sf);
                 sVideoHeight = player.getVideoHeight();
                 sVideoWidth = player.getVideoWidth();
-                while (sRunning) {
+                int duration = player.getDuration();
+                while (sRunning & player.getCurrentPosition() < duration) {
                     player.start();
                 }
                 player.release();
                 sf.release();
+                stop();
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_play);
+                    }
+                });
             }
         });
     }

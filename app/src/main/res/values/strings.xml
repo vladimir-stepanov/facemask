@@ -3,7 +3,7 @@
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device does not support Camera2 API.</string>
     <string name="initializing_engine">Initializing face recognition engine…</string>
-    <string name="face_recognition_time">Recognition time: <xliff:g id="time">%d</xliff:g> (<xliff:g id="average">%d</xliff:g>) mSec <xliff:g id="percent">%d</xliff:g>%%</string>
+    <string name="face_recognition_time">Recognition time: <xliff:g id="time">%3d</xliff:g> (<xliff:g id="average">%.1f</xliff:g>) mSec <xliff:g id="percent">%2.1f</xliff:g>%%</string>
     <string name="camera_preview_frame_rate">Frame rate: <xliff:g id="rate">%.2f</xliff:g> (<xliff:g id="average">%.1f</xliff:g>) fps</string>
     <string name="mouth_open">Mouth \"open\": %.2f</string>
     <string name="brightness_caption">Brightness: %.0f</string>

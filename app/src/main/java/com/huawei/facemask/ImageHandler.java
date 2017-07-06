@@ -8,6 +8,7 @@ import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.os.Environment;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -100,7 +101,8 @@ class ImageHandler {
     }
 
     public static void start(final Activity activity, final TextView score, final FaceView faceView,
-                             final TextView mouthOpen, final FloatingPreviewWindow preview) {
+                             final TextView mouthOpen, final FloatingPreviewWindow preview,
+                             final ImageView mMediaPlayPauseButton) {
         clearStatistics();
         AsyncActionHandler.post(new Runnable() {
             @Override
@@ -147,9 +149,15 @@ class ImageHandler {
                     }
                     index++;
                     if (index >= sImageFiles.length) {
-                        index = 0;
+                        stop();
                     }
                 }
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_play);
+                    }
+                });
             }
         });
     }

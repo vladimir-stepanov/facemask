@@ -109,7 +109,9 @@ class OnGetImageListener implements OnImageAvailableListener {
     void setShowMask(boolean showMask) {
         mShowMask = showMask;
         if (!mShowMask) {
-            mFaceView.setPoseAnglesAndModelView(false, null, null, null, null);
+            if (mFaceView != null) {
+                mFaceView.setPoseAnglesAndModelView(false, null, null, null, null);
+            }
         }
     }
 

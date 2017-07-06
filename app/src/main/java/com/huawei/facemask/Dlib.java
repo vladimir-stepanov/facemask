@@ -25,7 +25,7 @@ class Dlib {
     private static DlibFaceDetector sFaceDetector;
     private static boolean sDetectLandmarks;
     private static long sRecognitionTime;
-    private static long sRecognitionTimeSum;
+    private static float sRecognitionTimeSum;
     private static long sRecognizedFrameCount;
     private static long sFrameCount;
 
@@ -73,10 +73,10 @@ class Dlib {
                             @SuppressLint("StringFormatMatches")
                             @Override
                             public void run() {
-                                long percent = 0;
-                                long average = 0;
+                                float percent = 0;
+                                float average = 0;
                                 if (sFrameCount != 0) {
-                                    percent = sRecognizedFrameCount * 100 / sFrameCount;
+                                    percent = (float) sRecognizedFrameCount * 100 / sFrameCount;
                                     average = sRecognitionTimeSum / sFrameCount;
                                 }
                                 score.setText(activity.getResources().getString(
