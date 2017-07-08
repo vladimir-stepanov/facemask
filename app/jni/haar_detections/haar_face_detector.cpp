@@ -4,7 +4,7 @@
 #include <memory>
 #include <mutex>
 
-#define LBP_FACE_DETECTOR "com/huawei/opencv/HaarFaceDetector"
+#define HAAR_FACE_DETECTOR "com/huawei/opencv/HaarFaceDetector"
 
 using namespace std;
 using namespace cv;
@@ -36,9 +36,9 @@ namespace {
         cv::Ptr<cv::CascadeClassifier> Detector;
     };
 
-    class LbpDetector {
+    class HaarDetector {
     public:
-        LbpDetector(cv::Ptr<DetectionBasedTracker::IDetector> MainDetector,
+        HaarDetector(cv::Ptr<DetectionBasedTracker::IDetector> MainDetector,
                      cv::Ptr<DetectionBasedTracker::IDetector> TrackingDetector,
                      DetectionBasedTracker::Parameters params)
                 : mDetector(MainDetector, TrackingDetector, params) {
@@ -67,7 +67,7 @@ namespace {
             mIsRunning = false;
         }
 
-        virtual ~LbpDetector() {}
+        virtual ~HaarDetector() {}
 
     protected:
         DetectionBasedTracker mDetector;
@@ -75,13 +75,14 @@ namespace {
         bool mIsRunning = false;
     };
 
-    using DetectorPtr = LbpDetector *;
+    using DetectorPtr = HaarDetector *;
 
-    class JNI_LbpFaceDetector {
+    class JNI_HaarFaceDetector {
     public:
-        JNI_LbpFaceDetector(JNIEnv *env) {
-            jclass clazz = env->FindClass(LBP_FACE_DETECTOR);
+        JNI_HaarFaceDetector(JNIEnv *env) {
+            jclass clazz = env->FindClass(HAAR_FACE_DETECTOR);
             mNativeContext = env->GetFieldID(clazz, "mNativeFaceDetectorContext", "J");
+            mSpentTime = env->GetFieldID(clazz, "mSpentTime", "J");
             env->DeleteLocalRef(clazz);
         }
 
@@ -94,35 +95,40 @@ namespace {
             env->SetLongField(thisObj, mNativeContext, ptr);
         }
 
+        void setSpentTime(JNIEnv *env, jobject thisObj, jlong ptr) {
+            env->SetLongField(thisObj, mSpentTime, ptr);
+        }
+
         jfieldID mNativeContext;
+        jfieldID mSpentTime;
     };
 
 // Protect getting/setting and creating/deleting pointer between java/native
     std::mutex gLock;
 
-    std::shared_ptr<JNI_LbpFaceDetector> getJNI_LbpFaceDetector(JNIEnv *env) {
+    std::shared_ptr<JNI_HaarFaceDetector> getJNI_HaarFaceDetector(JNIEnv *env) {
         static std::once_flag sOnceInitFlag;
-        static std::shared_ptr<JNI_LbpFaceDetector> sJNI_HaarFaceDetector;
+        static std::shared_ptr<JNI_HaarFaceDetector> sJNI_HaarFaceDetector;
         std::call_once(sOnceInitFlag, [env]() {
-            sJNI_HaarFaceDetector = std::make_shared<JNI_LbpFaceDetector>(env);
+            sJNI_HaarFaceDetector = std::make_shared<JNI_HaarFaceDetector>(env);
         });
         return sJNI_HaarFaceDetector;
     }
 
     DetectorPtr const getDetectorPtr(JNIEnv *env, jobject thisObj) {
         std::lock_guard<std::mutex> lock(gLock);
-        return getJNI_LbpFaceDetector(env)->getDetectorPtrFromJava(env, thisObj);
+        return getJNI_HaarFaceDetector(env)->getDetectorPtrFromJava(env, thisObj);
     }
 
 // The function to set a pointer to java and delete it if newPtr is empty
     void setDetectorPtr(JNIEnv *env, jobject thisObj, DetectorPtr newPtr) {
         std::lock_guard<std::mutex> lock(gLock);
-        DetectorPtr oldPtr = getJNI_LbpFaceDetector(env)->getDetectorPtrFromJava(env, thisObj);
+        DetectorPtr oldPtr = getJNI_HaarFaceDetector(env)->getDetectorPtrFromJava(env, thisObj);
         if (oldPtr != JAVA_NULL) {
             delete oldPtr;
         }
 
-        getJNI_LbpFaceDetector(env)->setDetectorPtrToJava(env, thisObj, (jlong) newPtr);
+        getJNI_HaarFaceDetector(env)->setDetectorPtrToJava(env, thisObj, (jlong) newPtr);
     }
 
 }  // end unnamed space
@@ -131,21 +137,33 @@ namespace {
 extern "C" {
 #endif
 
-#define LBP_FACE_JNI_METHOD(METHOD_NAME) \
+#define HAAR_FACE_JNI_METHOD(METHOD_NAME) \
   Java_com_huawei_opencv_HaarFaceDetector_##METHOD_NAME
 
 void JNIEXPORT
-LBP_FACE_JNI_METHOD(jniNativeClassInit)(JNIEnv *env, jclass _this) {}
+HAAR_FACE_JNI_METHOD(jniNativeClassInit)(JNIEnv *env, jclass _this) {}
+
+/* return current time in milliseconds */
+static long getSystemTime(void) {
+    struct timespec res;
+    clock_gettime(CLOCK_REALTIME, &res);
+    return (long) (1000.0 * res.tv_sec + (double) res.tv_nsec / 1e6);
+}
 
 JNIEXPORT jobjectArray JNICALL
-LBP_FACE_JNI_METHOD(jniBitmapDetect)(JNIEnv *env, jobject thisObj, jobject bitmap) {
+HAAR_FACE_JNI_METHOD(jniBitmapDetect)(JNIEnv *env, jobject thisObj, jobject bitmap) {
     cv::Mat rgbaMat;
     cv::Mat bgrMat;
+    long start = getSystemTime();
     jniutils::ConvertBitmapToRGBAMat(env, bitmap, rgbaMat, true);
     cv::cvtColor(rgbaMat, bgrMat, cv::COLOR_RGB2GRAY);
     DetectorPtr detPtr = getDetectorPtr(env, thisObj);
     vector<Rect> faces;
     detPtr->detect(bgrMat, faces);
+
+    long end = getSystemTime();
+    getJNI_HaarFaceDetector(env)->setSpentTime(env, thisObj, end - start);
+
     jobjectArray ret;
     jclass rectClass = env->FindClass("android/graphics/Rect");
     jmethodID constructor = env->GetMethodID(rectClass, "<init>", "(IIII)V");
@@ -161,7 +179,7 @@ LBP_FACE_JNI_METHOD(jniBitmapDetect)(JNIEnv *env, jobject thisObj, jobject bitma
 }
 
 jint JNIEXPORT JNICALL
-LBP_FACE_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jstring jCascadeFrontalFilename) {
+HAAR_FACE_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jstring jCascadeFrontalFilename) {
     std::string cascadePath = jniutils::convertJStrToString(env, jCascadeFrontalFilename);
     cv::Ptr<cv::CascadeClassifier> cascade = makePtr<cv::CascadeClassifier>(cascadePath);
     cv::Ptr<DetectionBasedTracker::IDetector> MainDetector = makePtr<CascadeDetectorAdapter>(
@@ -170,7 +188,7 @@ LBP_FACE_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jstring jCascadeFront
     cv::Ptr<DetectionBasedTracker::IDetector> TrackingDetector = makePtr<CascadeDetectorAdapter>(
             cascade);
     DetectionBasedTracker::Parameters params;
-    DetectorPtr detPtr = new LbpDetector(MainDetector, TrackingDetector, params);
+    DetectorPtr detPtr = new HaarDetector(MainDetector, TrackingDetector, params);
     detPtr->setMinObjectSize(Size(20, 20));
     detPtr->setMinNeighbours(1);
     setDetectorPtr(env, thisObj, detPtr);;
@@ -178,7 +196,7 @@ LBP_FACE_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jstring jCascadeFront
 }
 
 jint JNIEXPORT JNICALL
-LBP_FACE_JNI_METHOD(jniDeInit)(JNIEnv *env, jobject thisObj) {
+HAAR_FACE_JNI_METHOD(jniDeInit)(JNIEnv *env, jobject thisObj) {
     DetectorPtr detPtr = getDetectorPtr(env, thisObj);
     detPtr->stop();
     setDetectorPtr(env, thisObj, JAVA_NULL);

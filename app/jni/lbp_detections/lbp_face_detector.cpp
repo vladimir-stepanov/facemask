@@ -82,6 +82,7 @@ namespace {
         JNI_LbpFaceDetector(JNIEnv *env) {
             jclass clazz = env->FindClass(LBP_FACE_DETECTOR);
             mNativeContext = env->GetFieldID(clazz, "mNativeFaceDetectorContext", "J");
+            mSpentTime = env->GetFieldID(clazz, "mSpentTime", "J");
             env->DeleteLocalRef(clazz);
         }
 
@@ -94,7 +95,13 @@ namespace {
             env->SetLongField(thisObj, mNativeContext, ptr);
         }
 
+        void setSpentTime(JNIEnv *env, jobject thisObj, jlong ptr) {
+            env->SetLongField(thisObj, mSpentTime, ptr);
+        }
+
         jfieldID mNativeContext;
+        jfieldID mSpentTime;
+
     };
 
 // Protect getting/setting and creating/deleting pointer between java/native
@@ -137,15 +144,27 @@ extern "C" {
 void JNIEXPORT
 LBP_FACE_JNI_METHOD(jniNativeClassInit)(JNIEnv *env, jclass _this) {}
 
+/* return current time in milliseconds */
+static long getSystemTime(void) {
+    struct timespec res;
+    clock_gettime(CLOCK_REALTIME, &res);
+    return (long) (1000.0 * res.tv_sec + (double) res.tv_nsec / 1e6);
+}
+
 JNIEXPORT jobjectArray JNICALL
 LBP_FACE_JNI_METHOD(jniBitmapDetect)(JNIEnv *env, jobject thisObj, jobject bitmap) {
     cv::Mat rgbaMat;
     cv::Mat bgrMat;
+    long start = getSystemTime();
     jniutils::ConvertBitmapToRGBAMat(env, bitmap, rgbaMat, true);
     cv::cvtColor(rgbaMat, bgrMat, cv::COLOR_RGB2GRAY);
     DetectorPtr detPtr = getDetectorPtr(env, thisObj);
     vector<Rect> faces;
     detPtr->detect(bgrMat, faces);
+
+    long end = getSystemTime();
+    getJNI_LbpFaceDetector(env)->setSpentTime(env, thisObj, end - start);
+
     jobjectArray ret;
     jclass rectClass = env->FindClass("android/graphics/Rect");
     jmethodID constructor = env->GetMethodID(rectClass, "<init>", "(IIII)V");
@@ -173,7 +192,7 @@ LBP_FACE_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jstring jCascadeFront
     DetectorPtr detPtr = new LbpDetector(MainDetector, TrackingDetector, params);
     detPtr->setMinObjectSize(Size(20, 20));
     detPtr->setMinNeighbours(1);
-    setDetectorPtr(env, thisObj, detPtr);;
+    setDetectorPtr(env, thisObj, detPtr);
     return JNI_OK;
 }
 

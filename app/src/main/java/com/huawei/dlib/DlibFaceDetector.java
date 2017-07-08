@@ -39,6 +39,7 @@ public class DlibFaceDetector {
     // accessed by native methods
     @SuppressWarnings("unused")
     private long mNativeFaceDetectorContext;
+    public long mSpentTime;
 
     private DlibFaceDetector(Context context) {
         mInitiated = false;

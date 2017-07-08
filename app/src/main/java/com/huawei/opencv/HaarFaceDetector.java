@@ -40,6 +40,7 @@ public class HaarFaceDetector {
     // accessed by native methods
     @SuppressWarnings("unused")
     private long mNativeFaceDetectorContext;
+    public long mSpentTime;
 
     private HaarFaceDetector(Context context) {
         mInitiated = false;

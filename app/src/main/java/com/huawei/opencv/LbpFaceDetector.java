@@ -40,6 +40,7 @@ public class LbpFaceDetector {
     // accessed by native methods
     @SuppressWarnings("unused")
     private long mNativeFaceDetectorContext;
+    public long mSpentTime;
 
     private LbpFaceDetector(Context context) {
         mInitiated = false;
