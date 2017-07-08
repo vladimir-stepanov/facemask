@@ -22,6 +22,7 @@ namespace {
         JNI_FaceDetector(JNIEnv *env) {
             jclass clazz = env->FindClass(CLASSNAME_FACE_DETECTOR);
             mNativeContext = env->GetFieldID(clazz, "mNativeFaceDetectorContext", "J");
+            mTimeSpent = env->GetFieldID(clazz, "mSpentTime", "J");
             env->DeleteLocalRef(clazz);
         }
 
@@ -34,6 +35,11 @@ namespace {
             env->SetLongField(thiz, mNativeContext, ptr);
         }
 
+        void setTimeSpent(JNIEnv *env, jobject thiz, jlong ptr) {
+            env->SetLongField(thiz, mTimeSpent, ptr);
+        }
+
+        jfieldID mTimeSpent;
         jfieldID mNativeContext;
     };
 
@@ -250,15 +256,27 @@ jobjectArray getDetectResult(JNIEnv *env, DetectorPtr faceDetector, const int &s
     return jDetRetArray;
 }
 
+/* return current time in milliseconds */
+static long getSystemTime(void) {
+    struct timespec res;
+    clock_gettime(CLOCK_REALTIME, &res);
+    return (long) (1000.0 * res.tv_sec + (double) res.tv_nsec / 1e6);
+}
+
 JNIEXPORT jobjectArray JNICALL
 DLIB_FACE_JNI_METHOD(jniBitmapDetect)(JNIEnv *env, jobject thiz, jobject bitmap) {
     //LOG(INFO) << "jniBitmapDetect";
     cv::Mat rgbaMat;
     cv::Mat bgrMat;
+    long start = getSystemTime();
     jniutils::ConvertBitmapToRGBAMat(env, bitmap, rgbaMat, true);
     cv::cvtColor(rgbaMat, bgrMat, cv::COLOR_RGBA2BGR);
     DetectorPtr detPtr = getDetectorPtr(env, thiz);
     jint size = detPtr->det(bgrMat);
+
+    long end = getSystemTime();
+    getJNI_FaceDetector(env)->setTimeSpent(env, thiz, end - start);
+
     //LOG(INFO) << "det num faces: " << size;
     return getDetectResult(env, detPtr, size, bgrMat);
 }

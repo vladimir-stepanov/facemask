@@ -26,6 +26,8 @@ class Dlib {
     private static boolean sDetectLandmarks;
     private static long sRecognitionTime;
     private static float sRecognitionTimeSum;
+    private static long sNativeRecognitionTime;
+    private static float sNativeRecognitionTimeSum;
     private static long sRecognizedFrameCount;
     private static long sFrameCount;
 
@@ -37,6 +39,8 @@ class Dlib {
     static void clearStatistics() {
         sRecognitionTime = 0;
         sRecognitionTimeSum = 0;
+        sNativeRecognitionTime = 0;
+        sNativeRecognitionTimeSum = 0;
         sRecognizedFrameCount = 0;
         sFrameCount = 0;
     }
@@ -63,6 +67,8 @@ class Dlib {
                 final long endTime = System.currentTimeMillis();
                 sRecognitionTime = endTime - startTime;
                 sRecognitionTimeSum += sRecognitionTime;
+                sNativeRecognitionTime = sFaceDetector.mSpentTime;
+                sNativeRecognitionTimeSum += sNativeRecognitionTime;
                 sFrameCount++;
                 if (faces != null && faces.size() > 0) {
                     sRecognizedFrameCount++;
@@ -75,13 +81,15 @@ class Dlib {
                             public void run() {
                                 float percent = 0;
                                 float average = 0;
+                                float nativeAverage = 0;
                                 if (sFrameCount != 0) {
                                     percent = (float) sRecognizedFrameCount * 100 / sFrameCount;
                                     average = sRecognitionTimeSum / sFrameCount;
+                                    nativeAverage = sNativeRecognitionTimeSum / sFrameCount;
                                 }
                                 score.setText(activity.getResources().getString(
                                         R.string.face_recognition_time,
-                                        sRecognitionTime, average, percent));
+                                        sRecognitionTime, average, nativeAverage, percent));
                             }
                         });
             } else {

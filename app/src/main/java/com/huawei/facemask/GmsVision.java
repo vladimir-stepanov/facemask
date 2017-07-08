@@ -97,7 +97,7 @@ class GmsVision {
                             }
                             score.setText(activity.getResources().getString(
                                     R.string.face_recognition_time,
-                                    sRecognitionTime, average, percent));
+                                    sRecognitionTime, average, average, percent));
                         }
                     });
         } else {
@@ -148,5 +148,4 @@ class GmsVision {
             faceView.setPoseAnglesAndModelView(false, null, null, null, null);
         }
     }
-
 }
