@@ -40,6 +40,7 @@ public class DlibFaceDetector {
     @SuppressWarnings("unused")
     private long mNativeFaceDetectorContext;
     public long mSpentTime;
+    public long mDetectLandmarks;
 
     private DlibFaceDetector(Context context) {
         mInitiated = false;

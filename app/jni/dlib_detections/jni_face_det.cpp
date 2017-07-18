@@ -23,6 +23,7 @@ namespace {
             jclass clazz = env->FindClass(CLASSNAME_FACE_DETECTOR);
             mNativeContext = env->GetFieldID(clazz, "mNativeFaceDetectorContext", "J");
             mTimeSpent = env->GetFieldID(clazz, "mSpentTime", "J");
+            mDetectLandmarks = env->GetFieldID(clazz, "mDetectLandmarks", "J");
             env->DeleteLocalRef(clazz);
         }
 
@@ -39,8 +40,13 @@ namespace {
             env->SetLongField(thiz, mTimeSpent, ptr);
         }
 
+        bool getDetectLandmarksFlag(JNIEnv *env, jobject thiz) {
+            return (bool) env->GetLongField(thiz, mDetectLandmarks);
+        }
+
         jfieldID mTimeSpent;
         jfieldID mNativeContext;
+        jfieldID mDetectLandmarks;
     };
 
 // Protect getting/setting and creating/deleting pointer between java/native
@@ -87,7 +93,8 @@ extern "C" {
 void JNIEXPORT
 DLIB_FACE_JNI_METHOD(jniNativeClassInit)(JNIEnv *env, jclass _this) {}
 
-jobjectArray getDetectResult(JNIEnv *env, DetectorPtr faceDetector, const int &size, Mat &frame) {
+jobjectArray getDetectResult(JNIEnv *env, DetectorPtr faceDetector, const int &size, Mat &frame,
+                             bool landmarksEnabled) {
 
     float angles[3];
     float modelView[16];
@@ -107,8 +114,7 @@ jobjectArray getDetectResult(JNIEnv *env, DetectorPtr faceDetector, const int &s
                                      (int) rect.bottom());
         std::unordered_map<int, dlib::full_object_detection> &faceShapeMap =
                 faceDetector->getFaceShapeMap();
-        if (faceShapeMap.find(i) != faceShapeMap.end()) {
-
+        if (landmarksEnabled && faceShapeMap.find(i) != faceShapeMap.end()) {
             dlib::full_object_detection shape = faceShapeMap[i];
             for (unsigned long j = 0; j < shape.num_parts(); j++) {
                 int x = (int) shape.part(j).x();
@@ -268,17 +274,19 @@ DLIB_FACE_JNI_METHOD(jniBitmapDetect)(JNIEnv *env, jobject thiz, jobject bitmap)
     //LOG(INFO) << "jniBitmapDetect";
     cv::Mat rgbaMat;
     cv::Mat bgrMat;
+    DetectorPtr detPtr = getDetectorPtr(env, thiz);
+    bool landmarksEnabled = getJNI_FaceDetector(env)->getDetectLandmarksFlag(env, thiz);
+    detPtr->setLandmarksFlag(landmarksEnabled);
     long start = getSystemTime();
     jniutils::ConvertBitmapToRGBAMat(env, bitmap, rgbaMat, true);
     cv::cvtColor(rgbaMat, bgrMat, cv::COLOR_RGBA2BGR);
-    DetectorPtr detPtr = getDetectorPtr(env, thiz);
     jint size = detPtr->det(bgrMat);
 
     long end = getSystemTime();
     getJNI_FaceDetector(env)->setTimeSpent(env, thiz, end - start);
 
     //LOG(INFO) << "det num faces: " << size;
-    return getDetectResult(env, detPtr, size, bgrMat);
+    return getDetectResult(env, detPtr, size, bgrMat, landmarksEnabled);
 }
 
 jint JNIEXPORT JNICALL

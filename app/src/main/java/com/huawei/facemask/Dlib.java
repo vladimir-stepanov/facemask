@@ -49,6 +49,7 @@ class Dlib {
         clearStatistics();
         sFaceDetector = DlibFaceDetector.getInstance(context);
         sDetectLandmarks = detectLandmarks;
+        sFaceDetector.mDetectLandmarks = detectLandmarks ? 1 : 0;
     }
 
     static void release() {
@@ -121,11 +122,13 @@ class Dlib {
                 for (Point point : landmarks) {
                     canvas.drawCircle(point.x, point.y, scale / 2, sFaceLandmarkPaint);
                 }
-                // draw a line sticking out of the nose
-                sFaceLandmarkPaint.setColor(Color.BLUE);
-                Point start = face.getNoseStart();
-                Point stop = face.getNoseEnd();
-                canvas.drawLine(start.x, start.y, stop.x, stop.y, sFaceLandmarkPaint);
+                if (!landmarks.isEmpty()) {
+                    // draw a line sticking out of the nose
+                    sFaceLandmarkPaint.setColor(Color.BLUE);
+                    Point start = face.getNoseStart();
+                    Point stop = face.getNoseEnd();
+                    canvas.drawLine(start.x, start.y, stop.x, stop.y, sFaceLandmarkPaint);
+                }
             }
             final float mouthOpen = face.getMouthOpen();
             activity.runOnUiThread(

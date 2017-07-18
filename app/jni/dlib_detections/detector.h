@@ -1,6 +1,17 @@
 
 #pragma once
 
+//Uncomment if you have to build for abiFilters 'armeabi-v7a'
+/*
+#include <cmath>
+
+namespace std {
+    inline int round(float x) {
+        return ::round(x);
+    }
+}
+*/
+
 #include <jni_common/jni_fileutils.h>
 #include <dlib/image_loader/load_image.h>
 #include <dlib/image_processing.h>
@@ -12,6 +23,7 @@
 #include <jni.h>
 #include <memory>
 #include <opencv2/core/core.hpp>
+#include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -91,6 +103,7 @@ private:
     dlib::shape_predictor msp;
     std::unordered_map<int, dlib::full_object_detection> mFaceShapeMap;
     dlib::frontal_face_detector mFrontalFaceDetector;
+    bool mLandmarksEnabled = true;
 
     inline void init() {
         LOG(INFO) << "Init mFrontalFaceDetector";
@@ -107,6 +120,10 @@ public:
             dlib::deserialize(mLandMarkModel) >> msp;
             LOG(INFO) << "Load landmarkmodel from " << mLandMarkModel;
         }
+    }
+
+    void setLandmarksFlag(bool enabled) {
+        mLandmarksEnabled = enabled;
     }
 
     virtual inline int det(const std::string &path) {
@@ -131,12 +148,14 @@ public:
         mRets = mFrontalFaceDetector(img);
         //LOG(INFO) << "Dlib HOG face det size : " << mRets.size();
         mFaceShapeMap.clear();
-        // Process shape
-        if (mRets.size() != 0 && mLandMarkModel.empty() == false) {
-            for (unsigned long j = 0; j < mRets.size(); ++j) {
-                dlib::full_object_detection shape = msp(img, mRets[j]);
-                //LOG(INFO) << "face index:" << j << "number of parts: " << shape.num_parts();
-                mFaceShapeMap[j] = shape;
+        if (mLandmarksEnabled) {
+            // Process shape
+            if (mRets.size() != 0 && mLandMarkModel.empty() == false) {
+                for (unsigned long j = 0; j < mRets.size(); ++j) {
+                    dlib::full_object_detection shape = msp(img, mRets[j]);
+                    //LOG(INFO) << "face index:" << j << "number of parts: " << shape.num_parts();
+                    mFaceShapeMap[j] = shape;
+                }
             }
         }
         return mRets.size();

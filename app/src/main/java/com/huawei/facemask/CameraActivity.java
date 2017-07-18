@@ -51,8 +51,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.huawei.dlib.DlibFaceDetector;
+import com.huawei.dlib.DlibModFaceDetector;
 import com.huawei.opencv.HaarFaceDetector;
 import com.huawei.opencv.LbpFaceDetector;
+import com.huawei.seetaface.SeetafaceDetector;
 import com.huawei.utils.MediaUtils;
 
 import java.util.ArrayList;
@@ -169,10 +171,14 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     private FloatingPreviewWindow mFloatingWindow;
     private SharedPreferences mPreferences;
     private DlibFaceDetector mDlibFaceDetector;
+    private DlibModFaceDetector mDlibModFaceDetector;
+    private SeetafaceDetector mSeetafaceDetector;
     private HaarFaceDetector mHaarFaceDetector;
     private LbpFaceDetector mLbpFaceDetector;
     private RadioButton mDlibRadioButton;
+    private RadioButton mDlibModRadioButton;
     private RadioButton mGmsRadioButton;
+    private RadioButton mSeetafaceRadioButton;
     private RadioButton mHaarRadioButton;
     private RadioButton mLbpRadioButton;
     private ImageView mLandmarksDetection;
@@ -444,7 +450,9 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 }
                 mPreferences.edit().putBoolean(KEY_LANDMARKS_DETECTION, mLandmarksDetectionEnabled).apply();
                 Dlib.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
+                DlibMod.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
                 GmsVision.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
+                Seetaface.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
                 HaarCascade.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
                 LbpCascade.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
             }
@@ -462,11 +470,25 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 setFaceRecognition(OnGetImageListener.DLIB_FACE_RECOGNITION);
             }
         });
+        mDlibModRadioButton = (RadioButton) findViewById(R.id.dlib_mod_radio_button);
+        mDlibModRadioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setFaceRecognition(OnGetImageListener.DLIB_MOD_FACE_RECOGNITION);
+            }
+        });
         mGmsRadioButton = (RadioButton) findViewById(R.id.gms_radio_button);
         mGmsRadioButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 setFaceRecognition(OnGetImageListener.GMS_FACE_RECOGNITION);
+            }
+        });
+        mSeetafaceRadioButton = (RadioButton) findViewById(R.id.seetaface_radio_button);
+        mSeetafaceRadioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setFaceRecognition(OnGetImageListener.SEETAFACE_RECOGNITION);
             }
         });
         mHaarRadioButton = (RadioButton) findViewById(R.id.haar_radio_button);
@@ -489,9 +511,11 @@ public class CameraActivity extends Activity implements View.OnClickListener {
 
     private void setFaceRecognition(int type) {
         mDlibRadioButton.setChecked(type == OnGetImageListener.DLIB_FACE_RECOGNITION);
+        mDlibModRadioButton.setChecked(type == OnGetImageListener.DLIB_MOD_FACE_RECOGNITION);
         mGmsRadioButton.setChecked(type == OnGetImageListener.GMS_FACE_RECOGNITION);
         mHaarRadioButton.setChecked(type == OnGetImageListener.HAAR_FACE_RECOGNITION);
         mLbpRadioButton.setChecked(type == OnGetImageListener.LBP_FACE_RECOGNITION);
+        mSeetafaceRadioButton.setChecked(type == OnGetImageListener.SEETAFACE_RECOGNITION);
         ImageHandler.setFaceRecognition(type);
         MovieHandler.setFaceRecognition(type);
         mOnGetPreviewListener.setFaceRecognition(type);
@@ -523,6 +547,10 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         } else {
             mDlibFaceDetector = DlibFaceDetector.getInstance(this);
             mDlibFaceDetector.asyncInit();
+            mDlibModFaceDetector = DlibModFaceDetector.getInstance(this);
+            mDlibModFaceDetector.asyncInit();
+            mSeetafaceDetector = SeetafaceDetector.getInstance(this);
+            mSeetafaceDetector.asyncInit();
             mHaarFaceDetector = HaarFaceDetector.getInstance(this);
             mHaarFaceDetector.asyncInit();
             mLbpFaceDetector = LbpFaceDetector.getInstance(this);
@@ -546,6 +574,10 @@ public class CameraActivity extends Activity implements View.OnClickListener {
             mHaarFaceDetector.asyncInit();
             mLbpFaceDetector = LbpFaceDetector.getInstance(this);
             mLbpFaceDetector.asyncInit();
+            mDlibModFaceDetector = DlibModFaceDetector.getInstance(this);
+            mDlibModFaceDetector.asyncInit();
+            mSeetafaceDetector = SeetafaceDetector.getInstance(this);
+            mSeetafaceDetector.asyncInit();
         }
     }
 
@@ -643,7 +675,9 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         stopListenToImages();
         MainLib.onDestroy();
         Dlib.release();
+        DlibMod.release();
         GmsVision.release();
+        Seetaface.release();
         HaarCascade.release();
         LbpCascade.release();
         if (mFloatingWindow != null) {

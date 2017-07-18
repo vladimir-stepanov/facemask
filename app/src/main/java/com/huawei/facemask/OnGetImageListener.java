@@ -31,11 +31,12 @@ import grapevine.face1.FaceView;
  * Class that takes in preview frames and converts the image to Bitmaps to process with dlib lib.
  */
 class OnGetImageListener implements OnImageAvailableListener {
-
+    static final int DLIB_MOD_FACE_RECOGNITION = 0;
     static final int DLIB_FACE_RECOGNITION = 1;
     static final int GMS_FACE_RECOGNITION = 2;
     static final int HAAR_FACE_RECOGNITION = 3;
     static final int LBP_FACE_RECOGNITION = 4;
+    static final int SEETAFACE_RECOGNITION = 5;
     private static final String TAG = "OnGetImageListener";
     private static final boolean GRAY = false;
     private static final boolean CONTRAST = true;
@@ -83,6 +84,8 @@ class OnGetImageListener implements OnImageAvailableListener {
         Display display = ((WindowManager) activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         display.getRealSize(mScreenSize);
         Dlib.setLandmarksDetection(activity, detectLandmarks);
+        DlibMod.setLandmarksDetection(activity, detectLandmarks);
+        Seetaface.setLandmarksDetection(activity, detectLandmarks);
         GmsVision.setLandmarksDetection(activity, detectLandmarks);
         HaarCascade.setLandmarksDetection(activity, detectLandmarks);
         LbpCascade.setLandmarksDetection(activity, detectLandmarks);
@@ -98,6 +101,7 @@ class OnGetImageListener implements OnImageAvailableListener {
         sFrameCount = 0;
         sFrameSum = 0;
         Dlib.clearStatistics();
+        DlibMod.clearStatistics();
         GmsVision.clearStatistics();
     }
 
@@ -279,8 +283,14 @@ class OnGetImageListener implements OnImageAvailableListener {
                             case DLIB_FACE_RECOGNITION:
                                 Dlib.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);
                                 break;
+                            case DLIB_MOD_FACE_RECOGNITION:
+                                DlibMod.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);
+                                break;
                             case GMS_FACE_RECOGNITION:
                                 GmsVision.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);
+                                break;
+                            case SEETAFACE_RECOGNITION:
+                                Seetaface.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);
                                 break;
                             case HAAR_FACE_RECOGNITION:
                                 HaarCascade.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);

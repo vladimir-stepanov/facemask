@@ -30,9 +30,11 @@ import java.io.FilenameFilter;
 import grapevine.face1.FaceView;
 
 import static com.huawei.facemask.OnGetImageListener.DLIB_FACE_RECOGNITION;
+import static com.huawei.facemask.OnGetImageListener.DLIB_MOD_FACE_RECOGNITION;
 import static com.huawei.facemask.OnGetImageListener.GMS_FACE_RECOGNITION;
 import static com.huawei.facemask.OnGetImageListener.HAAR_FACE_RECOGNITION;
 import static com.huawei.facemask.OnGetImageListener.LBP_FACE_RECOGNITION;
+import static com.huawei.facemask.OnGetImageListener.SEETAFACE_RECOGNITION;
 
 class MovieHandler {
 
@@ -114,6 +116,7 @@ class MovieHandler {
         GmsVision.clearStatistics();
         HaarCascade.clearStatistics();
         LbpCascade.clearStatistics();
+        Seetaface.clearStatistics();
     }
 
     static void setShowMask(boolean showMask) {
@@ -222,8 +225,14 @@ class MovieHandler {
                             case DLIB_FACE_RECOGNITION:
                                 Dlib.detectFace(activity, faceView, score, mouthOpen, out, sShowMask);
                                 break;
+                            case DLIB_MOD_FACE_RECOGNITION:
+                                DlibMod.detectFace(activity, faceView, score, mouthOpen, out, sShowMask);
+                                break;
                             case GMS_FACE_RECOGNITION:
                                 GmsVision.detectFace(activity, faceView, score, mouthOpen, out, sShowMask);
+                                break;
+                            case SEETAFACE_RECOGNITION:
+                                Seetaface.detectFace(activity, faceView, score, mouthOpen, out, sShowMask);
                                 break;
                             case HAAR_FACE_RECOGNITION:
                                 HaarCascade.detectFace(activity, faceView, score, mouthOpen, out, sShowMask);
