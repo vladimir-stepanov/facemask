@@ -15,8 +15,6 @@ import com.huawei.opencv.ObjTracker;
 
 import java.util.List;
 
-import grapevine.face1.FaceView;
-
 public class FaceTracker {
     private static final String TAG = "FaceTracker";
 
@@ -63,8 +61,8 @@ public class FaceTracker {
     }
 
     @SuppressWarnings("UnusedParameters")
-    static void detectFace(final Activity activity, FaceView faceView, final TextView score,
-                           final TextView mouth, Bitmap bitmap, boolean showMask, String alg) {
+    static void detectFace(final Activity activity, final TextView score,
+                           final TextView mouth, Bitmap bitmap, String alg) {
         List<Rect> faces = null;
         if (sFaceTracker != null) {
             if (sFaceTracker.isInitiated()) {

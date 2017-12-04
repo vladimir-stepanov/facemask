@@ -145,39 +145,6 @@
                     android:padding="@dimen/footer_panel_padding"
                     android:src="@drawable/landmarks_ic_on" />
 
-                <ImageView
-                    android:id="@+id/source_video"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_toStartOf="@+id/landmarks_detection_switcher"
-                    android:clickable="true"
-                    android:contentDescription="@string/app_name"
-                    android:padding="@dimen/footer_panel_padding"
-                    android:src="@drawable/ic_video" />
-
-                <ImageView
-                    android:id="@+id/source_images"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_toStartOf="@+id/source_video"
-                    android:clickable="true"
-                    android:contentDescription="@string/app_name"
-                    android:padding="@dimen/footer_panel_padding"
-                    android:src="@drawable/ic_images" />
-
-                <ImageView
-                    android:id="@+id/source_camera"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_toStartOf="@+id/source_images"
-                    android:clickable="true"
-                    android:contentDescription="@string/app_name"
-                    android:padding="@dimen/footer_panel_padding"
-                    android:src="@drawable/ic_camera" />
-
             </RelativeLayout>
 
             <LinearLayout

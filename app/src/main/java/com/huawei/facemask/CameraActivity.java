@@ -11,7 +11,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -54,9 +53,8 @@ import com.huawei.dlib.DlibFaceDetector;
 import com.huawei.dlib.DlibModFaceDetector;
 import com.huawei.opencv.HaarFaceDetector;
 import com.huawei.opencv.LbpFaceDetector;
-import com.huawei.seetaface.SeetafaceDetector;
 import com.huawei.opencv.ObjTracker;
-import com.huawei.utils.MediaUtils;
+import com.huawei.seetaface.SeetafaceDetector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,12 +64,8 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import grapevine.face1.FaceView;
-import grapevine.face1.MainLib;
-
 public class CameraActivity extends Activity implements View.OnClickListener {
 
-    private static final boolean SHOW_MASK = false;
     private static final String TAG = "CameraActivity";
     private static final String ERROR_DIALOG = "error_dialog";
     private static final String KEY_PREVIEW_VISIBLE = "key_preview_visible";
@@ -79,9 +73,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     private static final String KEY_LANDMARKS_DETECTION = "key_landmarks_detection";
     private static final int MINIMUM_CAMERA_PREVIEW_SIZE = 300;
     private static final int SEEK_BAR_MAX = 10;
-    private static final int SOURCE_CAMERA = 1;
-    private static final int SOURCE_IMAGES = 2;
-    private static final int SOURCE_MOVIE = 3;
     private static final int REQUEST_PERMISSIONS_CODE = 1;
     private static final int OVERLAY_PERMISSION_REQ_CODE = 2;
     private static final String[] PERMISSIONS_REQ = {
@@ -131,7 +122,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     private TextView mMouthOpen;
     private View mTopPanel;
     private ImageView mSwitchCameraButton;
-    private ImageView mMediaPlayPauseButton;
 
     private View mBottomPanel;
     private TextView mImageSizeCaption;
@@ -160,10 +150,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
 
                 @Override
                 public void onSurfaceTextureUpdated(final SurfaceTexture texture) {
-                    if (mSourceForRecognition == SOURCE_MOVIE) {
-                        MovieHandler.processImage(CameraActivity.this, mFaceView, mTextureView, mScore,
-                                mCameraPreviewFrameRate, mMouthOpen, mFloatingWindow);
-                    }
                 }
             };
     private TextView mImageBrightnessCaption;
@@ -225,12 +211,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     private SeekBar mBrightnessBar;
     private SeekBar mContrastBar;
     private SeekBar mPreviewSizeBar;
-    private int mSourceForRecognition;
-    private ImageView mSourceCameraButton;
-
-    private FaceView mFaceView;
-    private ImageView mSourceImagesButton;
-    private ImageView mSourceVideoButton;
 
     /**
      * Given {@code choices} of {@code Size}s supported by a camera, chooses the smallest one whose
@@ -301,19 +281,9 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mTopPanel = findViewById(R.id.topPanel);
 
         mCameraFacing = CameraCharacteristics.LENS_FACING_FRONT;
-        mSourceForRecognition = SOURCE_CAMERA;
-        mSourceCameraButton = (ImageView) findViewById(R.id.source_camera);
-        mSourceCameraButton.setOnClickListener(this);
-        mSourceCameraButton.setImageResource(R.drawable.ic_camera_selected);
-        mSourceImagesButton = (ImageView) findViewById(R.id.source_images);
-        mSourceImagesButton.setOnClickListener(this);
-        mSourceVideoButton = (ImageView) findViewById(R.id.source_video);
-        mSourceVideoButton.setOnClickListener(this);
 
         mSwitchCameraButton = (ImageView) findViewById(R.id.switch_camera_button);
         mSwitchCameraButton.setOnClickListener(this);
-        mMediaPlayPauseButton = (ImageView) findViewById(R.id.media_play_pause_button);
-        mMediaPlayPauseButton.setOnClickListener(this);
 
         mBottomPanel = findViewById(R.id.bottom_panel);
         mImageSizeCaption = (TextView) findViewById(R.id.image_size_caption);
@@ -321,10 +291,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mOnGetPreviewListener.setContrast(1.0f);
         mOnGetPreviewListener.setBrightness(0f);
-        ImageHandler.setContrast(1.0f);
-        ImageHandler.setBrightness(0f);
-        MovieHandler.setContrast(1.0f);
-        MovieHandler.setBrightness(0f);
         mImageBrightnessCaption = (TextView) findViewById(R.id.image_brightness_caption);
         mImageBrightnessCaption.setText(getString(R.string.brightness_caption, 0f));
         mImageContrastCaption = (TextView) findViewById(R.id.image_contrast_caption);
@@ -340,21 +306,11 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 if (progress == 0) {
                     progress = 1;
                 }
-                if (mSourceForRecognition == SOURCE_CAMERA) {
-                    OnGetImageListener.scale = (float) progress / SEEK_BAR_MAX;
-                    int width = (int) (mCameraPreviewSize.getWidth() * OnGetImageListener.scale);
-                    int height = (int) (mCameraPreviewSize.getHeight() * OnGetImageListener.scale);
-                    mImageSizeCaption.setText(getString(R.string.image_size, height, width));
-                }
-                if (mSourceForRecognition == SOURCE_MOVIE) {
-                    MovieHandler.scale = (float) progress / SEEK_BAR_MAX / 2;
-                    int width = (int) (MovieHandler.getVideoWidth() * MovieHandler.scale);
-                    int height = (int) (MovieHandler.getVideoHeight() * MovieHandler.scale);
-                    mImageSizeCaption.setText(getString(R.string.image_size, width, height));
-                }
+                OnGetImageListener.scale = (float) progress / SEEK_BAR_MAX;
+                int width = (int) (mCameraPreviewSize.getWidth() * OnGetImageListener.scale);
+                int height = (int) (mCameraPreviewSize.getHeight() * OnGetImageListener.scale);
+                mImageSizeCaption.setText(getString(R.string.image_size, height, width));
                 OnGetImageListener.clearStatistics();
-                ImageHandler.clearStatistics();
-                MovieHandler.clearStatistics();
             }
 
             @Override
@@ -373,8 +329,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 float brightness = progress - 255;
                 mOnGetPreviewListener.setBrightness(brightness);
-                ImageHandler.setBrightness(brightness);
-                MovieHandler.setBrightness(brightness);
                 mImageBrightnessCaption.setText(getString(R.string.brightness_caption, brightness));
             }
 
@@ -409,8 +363,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     contrast = (float) progress / 100.0f;
                 }
                 mOnGetPreviewListener.setContrast(contrast);
-                ImageHandler.setContrast(contrast);
-                MovieHandler.setContrast(contrast);
                 mImageContrastCaption.setText(getString(R.string.contrast_caption, contrast));
             }
 
@@ -570,8 +522,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mBoostingRadioButton.setChecked(type == OnGetImageListener.BOOSTING_FACE_TRACKER);
         mMedianflowRadioButton.setChecked(type == OnGetImageListener.MEDIANFLOW_FACE_TRACKER);
         mTldRadioButton.setChecked(type == OnGetImageListener.TLD_FACE_TRACKER);
-        ImageHandler.setFaceRecognition(type);
-        MovieHandler.setFaceRecognition(type);
         mOnGetPreviewListener.setFaceRecognition(type);
         mPreferences.edit().putInt(KEY_DETECTION_FEATURE, type).apply();
     }
@@ -652,25 +602,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    private void startListenToMovie() {
-        MovieHandler.setShowMask(SHOW_MASK);
-        configureMovieTransform(mTextureView.getWidth(), mTextureView.getHeight());
-        if (mFloatingWindow != null) {
-            mFloatingWindow.show();
-        }
-        MovieHandler.clearStatistics();
-    }
-
-    private void stopListenToMovie() {
-        MovieHandler.stop();
-    }
-
-    private void stopListenToImages() {
-        ImageHandler.stop();
-    }
-
     private void startListenToCamera() {
-        mOnGetPreviewListener.setShowMask(SHOW_MASK);
         // When the screen is turned off and turned back on, the SurfaceTexture is already
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
@@ -685,8 +617,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
             mFloatingWindow.show();
         }
         OnGetImageListener.clearStatistics();
-        ImageHandler.clearStatistics();
-        MovieHandler.clearStatistics();
     }
 
     private void stopListenToCamera() {
@@ -701,24 +631,9 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         verifyPermissions(this);
         RequestDrawOverlays();
 
-        mFaceView = new FaceView(getApplication(), true, 24, 0); // Translucent, 24-bit depth, no stencil
-        FrameLayout layout = (FrameLayout) findViewById(R.id.frame_layout);
-        layout.addView(mFaceView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
-        mFaceView.setZOrderOnTop(true);
-        mFaceView.onResume();
-        mFaceView.bringToFront();
-
-        AssetManager assetManager = getAssets();
-        MainLib.onCreate();
-        MainLib.setAssetManager(assetManager);
-
-        mTextureView.setAlpha(mSourceForRecognition == SOURCE_IMAGES ? 0f : 1f);
-        mPreviewSizeBar.setVisibility(mSourceForRecognition != SOURCE_IMAGES ? View.VISIBLE : View.INVISIBLE);
-        mSwitchCameraButton.setVisibility(mSourceForRecognition == SOURCE_CAMERA ? View.VISIBLE : View.GONE);
-        mMediaPlayPauseButton.setVisibility(mSourceForRecognition == SOURCE_CAMERA ? View.GONE : View.VISIBLE);
-        mSourceCameraButton.setImageResource(R.drawable.ic_camera_selected);
-        mSourceImagesButton.setImageResource(R.drawable.ic_images);
-        mSourceVideoButton.setImageResource(R.drawable.ic_video);
+        mTextureView.setAlpha(1f);
+        mPreviewSizeBar.setVisibility(View.VISIBLE);
+        mSwitchCameraButton.setVisibility(View.VISIBLE);
         startBackgroundThread();
         startListenToCamera();
     }
@@ -726,12 +641,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onPause() {
         super.onPause();
-        mFaceView.onPause();
-        mSourceForRecognition = SOURCE_CAMERA;
         stopListenToCamera();
-        stopListenToMovie();
-        stopListenToImages();
-        MainLib.onDestroy();
         Dlib.release();
         DlibMod.release();
         GmsVision.release();
@@ -962,7 +872,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     private void createFloatingView() {
         mFloatingWindow = new FloatingPreviewWindow(this);
 
-        mOnGetPreviewListener.initialize(this, mFaceView, mFloatingWindow, mScore,
+        mOnGetPreviewListener.initialize(this, mFloatingWindow, mScore,
                 mCameraPreviewFrameRate, mMouthOpen, mLandmarksDetectionEnabled, mInferenceHandler);
 
         runOnUiThread(new Runnable() {
@@ -1017,120 +927,9 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mTextureView.setTransform(matrix);
     }
 
-    private void configureMovieTransform(final int viewWidth, final int viewHeight) {
-        if (null == mTextureView || null == mCameraPreviewSize) {
-            return;
-        }
-        MovieHandler.init(this, mFloatingWindow, mInferenceHandler);
-        if (MovieHandler.getVideoWidth() > MovieHandler.getVideoHeight()) {
-            final Matrix matrix = new Matrix();
-            final RectF viewRect = new RectF(0, 0, viewWidth, viewHeight);
-            final RectF bufferRect = new RectF(0, 0, mCameraPreviewSize.getHeight(), mCameraPreviewSize.getWidth());
-            final float centerX = viewRect.centerX();
-            final float centerY = viewRect.centerY();
-            bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY());
-            matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL);
-            matrix.setScale((float) viewHeight / viewWidth, (float) viewWidth / viewHeight, centerX, centerY);
-            matrix.postRotate(90, centerX, centerY);
-            mTextureView.setTransform(matrix);
-        }
-    }
-
-    @SuppressLint("StringFormatInvalid")
-    private boolean setSourceForRecognition(int source) {
-        ImageHandler.clearStatistics();
-        MovieHandler.clearStatistics();
-        OnGetImageListener.clearStatistics();
-        boolean result = false;
-        boolean sourceChanged = mSourceForRecognition != source;
-        if (sourceChanged) {
-            if (source == SOURCE_IMAGES) {
-                if (ImageHandler.haveImages(this)) {
-                    if (mSourceForRecognition == SOURCE_CAMERA) {
-                        stopListenToCamera();
-                    }
-                    if (mSourceForRecognition == SOURCE_MOVIE) {
-                        stopListenToMovie();
-                    }
-                    mSourceForRecognition = source;
-                    ImageHandler.init(mFloatingWindow);
-                    result = true;
-                    mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_play);
-                    mImageSizeCaption.setText(getString(R.string.image_size,
-                            MediaUtils.HORIZONTAL_SIZE_THUMBNAIL, MediaUtils.VERTICAL_SIZE_THUMBNAIL));
-                }
-            } else if (source == SOURCE_MOVIE) {
-                if (MovieHandler.haveMovies(this)) {
-                    ImageHandler.stop();
-                    if (mSourceForRecognition == SOURCE_CAMERA) {
-                        stopListenToCamera();
-                    }
-                    mSourceForRecognition = source;
-                    MovieHandler.init(this, mFloatingWindow, mInferenceHandler);
-                    result = true;
-                    MovieHandler.scale = (float) mPreviewSizeBar.getProgress() / SEEK_BAR_MAX / 2;
-                    mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_play);
-                    int width = (int) (MovieHandler.getVideoWidth() * MovieHandler.scale);
-                    int height = (int) (MovieHandler.getVideoHeight() * MovieHandler.scale);
-                    mImageSizeCaption.setText(getString(R.string.image_size, width, height));
-                    startListenToMovie();
-                }
-            } else if (source == SOURCE_CAMERA) {
-                if (mSourceForRecognition == SOURCE_MOVIE) {
-                    stopListenToMovie();
-                }
-                ImageHandler.stop();
-                startListenToCamera();
-                result = true;
-            }
-        }
-        if (result) {
-            mSourceForRecognition = source;
-        }
-
-        mTextureView.setAlpha(mSourceForRecognition == SOURCE_IMAGES ? 0f : 1f);
-        mPreviewSizeBar.setVisibility(mSourceForRecognition != SOURCE_IMAGES ? View.VISIBLE : View.INVISIBLE);
-        mSwitchCameraButton.setVisibility(mSourceForRecognition == SOURCE_CAMERA ? View.VISIBLE : View.GONE);
-        mMediaPlayPauseButton.setVisibility(mSourceForRecognition == SOURCE_CAMERA ? View.GONE : View.VISIBLE);
-        return result;
-    }
-
     @Override
     public void onClick(View view) {
-        if (view == mSourceCameraButton) {
-            if (setSourceForRecognition(SOURCE_CAMERA)) {
-                mSourceCameraButton.setImageResource(R.drawable.ic_camera_selected);
-                mSourceImagesButton.setImageResource(R.drawable.ic_images);
-                mSourceVideoButton.setImageResource(R.drawable.ic_video);
-                mMilRadioButton.setVisibility(View.VISIBLE);
-                mKcfRadioButton.setVisibility(View.VISIBLE);
-                mBoostingRadioButton.setVisibility(View.VISIBLE);
-                mMedianflowRadioButton.setVisibility(View.VISIBLE);
-                mTldRadioButton.setVisibility(View.VISIBLE);
-            }
-        } else if (view == mSourceImagesButton) {
-            if (setSourceForRecognition(SOURCE_IMAGES)) {
-                mSourceCameraButton.setImageResource(R.drawable.ic_camera);
-                mSourceImagesButton.setImageResource(R.drawable.ic_images_selected);
-                mSourceVideoButton.setImageResource(R.drawable.ic_video);
-                mMilRadioButton.setVisibility(View.INVISIBLE);
-                mKcfRadioButton.setVisibility(View.INVISIBLE);
-                mBoostingRadioButton.setVisibility(View.INVISIBLE);
-                mMedianflowRadioButton.setVisibility(View.INVISIBLE);
-                mTldRadioButton.setVisibility(View.INVISIBLE);
-            }
-        } else if (view == mSourceVideoButton) {
-            if (setSourceForRecognition(SOURCE_MOVIE)) {
-                mSourceCameraButton.setImageResource(R.drawable.ic_camera);
-                mSourceImagesButton.setImageResource(R.drawable.ic_images);
-                mSourceVideoButton.setImageResource(R.drawable.ic_video_selected);
-                mMilRadioButton.setVisibility(View.INVISIBLE);
-                mKcfRadioButton.setVisibility(View.INVISIBLE);
-                mBoostingRadioButton.setVisibility(View.INVISIBLE);
-                mMedianflowRadioButton.setVisibility(View.INVISIBLE);
-                mTldRadioButton.setVisibility(View.INVISIBLE);
-            }
-        } else if (view == mSwitchCameraButton) {
+        if (view == mSwitchCameraButton) {
             stopListenToCamera();
             if (mCameraFacing == CameraCharacteristics.LENS_FACING_BACK) {
                 mCameraFacing = CameraCharacteristics.LENS_FACING_FRONT;
@@ -1141,26 +940,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
             }
             mOnGetPreviewListener.setCameraFacing(mCameraFacing);
             startListenToCamera();
-        } else if (view == mMediaPlayPauseButton) {
-            if (mSourceForRecognition == SOURCE_IMAGES) {
-                if (ImageHandler.isRunning()) {
-                    ImageHandler.stop();
-                    mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_play);
-                } else {
-                    ImageHandler.setShowMask(SHOW_MASK);
-                    ImageHandler.start(this, mScore, mFaceView, mMouthOpen, mFloatingWindow, mMediaPlayPauseButton);
-                    mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_stop);
-                }
-            }
-            if (mSourceForRecognition == SOURCE_MOVIE) {
-                if (MovieHandler.isRunning()) {
-                    MovieHandler.stop();
-                    mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_play);
-                } else {
-                    MovieHandler.start(this, mTextureView, mMediaPlayPauseButton);
-                    mMediaPlayPauseButton.setImageResource(R.drawable.ic_media_stop);
-                }
-            }
         }
     }
 

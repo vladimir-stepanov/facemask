@@ -1,1 +1,1 @@
-include ':app', ':face1'
+include ':app'

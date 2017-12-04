@@ -1,7 +1,0 @@
-MATERIAL PACK2 FEATURES
-colorMapName:           50% ambient + 50% diffuse                       ALWAYS ON
-normalMapName:          NEED TO BE SPECIFIED MORE CLEAR                 OFF             ON
-specularFactor:         FAT to color factor, strength factor            OFF <0.001      ON >= 0.001
-+ glossinessFactor:     FAT to color factor, exponent
-reflectionFactor:       replaces color with cubemap color * factor      OFF <0.001      ON >= 0.001
-2 sided texture

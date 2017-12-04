@@ -14,8 +14,6 @@ import com.huawei.opencv.HaarFaceDetector;
 
 import java.util.List;
 
-import grapevine.face1.FaceView;
-
 class HaarCascade {
 
     private static final Paint sFaceLandmarkPaint = new Paint();
@@ -58,8 +56,8 @@ class HaarCascade {
     }
 
     @SuppressWarnings("UnusedParameters")
-    static void detectFace(final Activity activity, FaceView faceView, final TextView score,
-                           final TextView mouth, Bitmap bitmap, boolean showMask) {
+    static void detectFace(final Activity activity, final TextView score,
+                           final TextView mouth, Bitmap bitmap) {
         List<Rect> faces = null;
         if (sFaceDetector != null) {
             if (sFaceDetector.isInitiated()) {
@@ -115,9 +113,6 @@ class HaarCascade {
             sFaceLandmarkPaint.setColor(Color.RED);
             sFaceLandmarkPaint.setStrokeWidth(scale);
             canvas.drawRect(face, sFaceLandmarkPaint);
-        }
-        if (showMask) {
-            faceView.setPoseAnglesAndModelView(false, null, null, null, null);
         }
     }
 }

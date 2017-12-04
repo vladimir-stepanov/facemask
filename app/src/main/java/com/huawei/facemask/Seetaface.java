@@ -16,8 +16,6 @@ import com.huawei.seetaface.SeetafaceDetector;
 import java.util.ArrayList;
 import java.util.List;
 
-import grapevine.face1.FaceView;
-
 class Seetaface {
 
     private static final Paint sFaceLandmarkPaint = new Paint();
@@ -58,8 +56,8 @@ class Seetaface {
         }
     }
 
-    static void detectFace(final Activity activity, FaceView faceView, final TextView score,
-                           final TextView mouth, Bitmap bitmap, boolean showMask) {
+    static void detectFace(final Activity activity, final TextView score,
+                           final TextView mouth, Bitmap bitmap) {
         List<DlibDetectedFace> faces = null;
         if (sFaceDetector != null) {
             if (sFaceDetector.isInitiated()) {
@@ -139,20 +137,7 @@ class Seetaface {
                                     R.string.mouth_open, mouthOpen));
                         }
                     });
-
-            // Send face to grapevine
-            if (showMask) {
-                faceView.setPoseAnglesAndModelView(true,
-                        face.mAngles,
-                        face.mModelView,
-                        face.mFrustumScale,
-                        face.mLandmarks);
-            }
-
         } else {
-            if (showMask) {
-                faceView.setPoseAnglesAndModelView(false, null, null, null, null);
-            }
             activity.runOnUiThread(
                     new Runnable() {
                         @Override

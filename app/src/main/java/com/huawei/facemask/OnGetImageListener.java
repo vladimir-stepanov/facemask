@@ -26,8 +26,6 @@ import android.widget.TextView;
 import com.huawei.dlib.ImageUtils;
 import com.huawei.opencv.ObjTracker;
 
-import grapevine.face1.FaceView;
-
 /**
  * Class that takes in preview frames and converts the image to Bitmaps to process with dlib lib.
  */
@@ -50,7 +48,6 @@ class OnGetImageListener implements OnImageAvailableListener {
     static float scale = 0.5f;
     private final Point mScreenSize = new Point();
     private Activity mActivity;
-    private FaceView mFaceView;
     private int mPreviewWidth = 0;
     private int mPreviewHeight = 0;
     private byte[][] mYUVBytes;
@@ -73,15 +70,13 @@ class OnGetImageListener implements OnImageAvailableListener {
     private static long sFrameCount;
     private static float sFrameSum;
     private static float sAverageFrameRate;
-    private boolean mShowMask;
     private int mCameraFacing = CameraCharacteristics.LENS_FACING_FRONT;
 
-    void initialize(Activity activity, FaceView faceView, FloatingPreviewWindow floatingWindow,
+    void initialize(Activity activity, FloatingPreviewWindow floatingWindow,
                     TextView score, TextView frameRate,
                     TextView mouthOpen, boolean detectLandmarks,
                     Handler handler) {
         mActivity = activity;
-        mFaceView = faceView;
         mScore = score;
         mFrameRate = frameRate;
         mMouthOpen = mouthOpen;
@@ -119,15 +114,6 @@ class OnGetImageListener implements OnImageAvailableListener {
     void setOperational(boolean value) {
         clearStatistics();
         mOperational = value;
-    }
-
-    void setShowMask(boolean showMask) {
-        mShowMask = showMask;
-        if (!mShowMask) {
-            if (mFaceView != null) {
-                mFaceView.setPoseAnglesAndModelView(false, null, null, null, null);
-            }
-        }
     }
 
     void setBrightness(float brightness) {
@@ -292,37 +278,37 @@ class OnGetImageListener implements OnImageAvailableListener {
                     public void run() {
                         switch (mFaceRecognition) {
                             case DLIB_FACE_RECOGNITION:
-                                Dlib.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);
+                                Dlib.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
                                 break;
                             case DLIB_MOD_FACE_RECOGNITION:
-                                DlibMod.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);
+                                DlibMod.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
                                 break;
                             case GMS_FACE_RECOGNITION:
-                                GmsVision.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);
+                                GmsVision.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
                                 break;
                             case SEETAFACE_RECOGNITION:
-                                Seetaface.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);
+                                Seetaface.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
                                 break;
                             case HAAR_FACE_RECOGNITION:
-                                HaarCascade.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);
+                                HaarCascade.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
                                 break;
                             case LBP_FACE_RECOGNITION:
-                                LbpCascade.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);
+                                LbpCascade.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
                                 break;
                             case MIL_FACE_TRACKER:
-                                FaceTracker.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask, ObjTracker.MIL_TRACKER_ALGORITHM);
+                                FaceTracker.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.MIL_TRACKER_ALGORITHM);
                                 break;
                             case BOOSTING_FACE_TRACKER:
-                                FaceTracker.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask, ObjTracker.BOOSTING_TRACKER_ALGORITHM);
+                                FaceTracker.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.BOOSTING_TRACKER_ALGORITHM);
                                 break;
                             case TLD_FACE_TRACKER:
-                                FaceTracker.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask, ObjTracker.TLD_TRACKER_ALGORITHM);
+                                FaceTracker.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.TLD_TRACKER_ALGORITHM);
                                 break;
                             case MEDIANFLOW_FACE_TRACKER:
-                                FaceTracker.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask, ObjTracker.MEDIANFLOW_TRACKER_ALGORITHM);
+                                FaceTracker.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.MEDIANFLOW_TRACKER_ALGORITHM);
                                 break;
                             case KCF_FACE_TRACKER:
-                                FaceTracker.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask, ObjTracker.KCF_TRACKER_ALGORITHM);
+                                FaceTracker.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.KCF_TRACKER_ALGORITHM);
                                 break;
                         }
                         if (isOperational()) {

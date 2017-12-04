@@ -1,8 +1,0 @@
-Barrel Format
-=============
-
-Type        Block Header        Internal Header     Internal Data   Block Footer
-====        ============        ===============     =============   ============
-header      <BARREL(>           <header header>     <...data...>    <)>
-mesh        <MESH(>             <mesh header>       <...data...>    <)>
-material    <MATERIAL(>         <material header>   <...data...>    <)>

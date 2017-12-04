@@ -18,8 +18,6 @@ import com.google.android.gms.vision.face.FaceDetector;
 import com.google.android.gms.vision.face.Landmark;
 import com.huawei.gmsvision.GmsFaceDetector;
 
-import grapevine.face1.FaceView;
-
 class GmsVision {
 
     private static final Paint sFaceLandmarkPaint = new Paint();
@@ -69,8 +67,8 @@ class GmsVision {
         }
     }
 
-    static void detectFace(final Activity activity, FaceView faceView, final TextView score,
-                           final TextView mouth, Bitmap bitmap, boolean showMask) {
+    static void detectFace(final Activity activity, final TextView score,
+                           final TextView mouth, Bitmap bitmap) {
         SparseArray<Face> faces = null;
         if (sFaceDetector.isOperational()) {
             final long startTime = System.currentTimeMillis();
@@ -142,10 +140,6 @@ class GmsVision {
                                     R.string.vision_euler, eulerY, eulerZ));
                         }
                     });
-        }
-
-        if (showMask) {
-            faceView.setPoseAnglesAndModelView(false, null, null, null, null);
         }
     }
 }
