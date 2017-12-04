@@ -90,77 +90,11 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:text="@string/landmarks_caption"
-                    android:textColor="@color/colorTextPanel"
-                    android:textSize="11dp"
-                    tools:ignore="RelativeOverlap,SpUsage" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    tools:ignore="RelativeOverlap">
-
-                    <RadioButton
-                        android:id="@+id/dlib_radio_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/dlib_face_recognition" />
-
-                    <RadioButton
-                        android:id="@+id/dlib_mod_radio_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/dlib_mod_face_recognition" />
-
-                </LinearLayout>
-
-                <ImageView
-                    android:id="@+id/landmarks_detection_switcher"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:clickable="true"
-                    android:contentDescription="@string/app_name"
-                    android:padding="@dimen/footer_panel_padding"
-                    android:src="@drawable/landmarks_ic_on" />
-
-            </RelativeLayout>
-
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 tools:ignore="RelativeOverlap">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    tools:ignore="RelativeOverlap">
-
-                    <RadioButton
-                        android:id="@+id/haar_radio_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/haar_face_recognition" />
-
-                    <RadioButton
-                        android:id="@+id/lbp_radio_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/lbp_face_recognition" />
-
-                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="wrap_content"

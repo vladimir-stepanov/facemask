@@ -52,11 +52,9 @@ public class FaceTracker {
         sFrameCount = 0;
     }
 
-    static void setLandmarksDetection(Context context, boolean detectLandmarks) {
+    static void setLandmarksDetection(Context context) {
         clearStatistics();
         mContext = context;
-        sDetectLandmarks = detectLandmarks;
-        // Do nothing HAAR Cascade does not support landmark detection
         sFaceTracker = ObjTracker.getInstance(context);
     }
 

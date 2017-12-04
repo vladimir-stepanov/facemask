@@ -42,17 +42,12 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.huawei.dlib.DlibFaceDetector;
-import com.huawei.dlib.DlibModFaceDetector;
-import com.huawei.opencv.HaarFaceDetector;
-import com.huawei.opencv.LbpFaceDetector;
 import com.huawei.opencv.ObjTracker;
 
 import java.util.ArrayList;
@@ -69,7 +64,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     private static final String ERROR_DIALOG = "error_dialog";
     private static final String KEY_PREVIEW_VISIBLE = "key_preview_visible";
     private static final String KEY_DETECTION_FEATURE = "key_detection_feature";
-    private static final String KEY_LANDMARKS_DETECTION = "key_landmarks_detection";
     private static final int MINIMUM_CAMERA_PREVIEW_SIZE = 300;
     private static final int SEEK_BAR_MAX = 10;
     private static final int REQUEST_PERMISSIONS_CODE = 1;
@@ -156,22 +150,12 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     private ImageView mVisibilitySwitcher;
     private FloatingPreviewWindow mFloatingWindow;
     private SharedPreferences mPreferences;
-    private DlibFaceDetector mDlibFaceDetector;
-    private DlibModFaceDetector mDlibModFaceDetector;
-    private HaarFaceDetector mHaarFaceDetector;
-    private LbpFaceDetector mLbpFaceDetector;
     private ObjTracker mObjTracker;
-    private RadioButton mDlibRadioButton;
-    private RadioButton mDlibModRadioButton;
-    private RadioButton mHaarRadioButton;
-    private RadioButton mLbpRadioButton;
     private RadioButton mMilRadioButton;
     private RadioButton mKcfRadioButton;
     private RadioButton mBoostingRadioButton;
     private RadioButton mMedianflowRadioButton;
     private RadioButton mTldRadioButton;
-    private ImageView mLandmarksDetection;
-    private boolean mLandmarksDetectionEnabled;
     /**
      * {@link android.hardware.camera2.CameraDevice.StateCallback}
      * is called when {@link CameraDevice} changes its state.
@@ -392,59 +376,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 mPreferences.edit().putBoolean(KEY_PREVIEW_VISIBLE, visible).apply();
             }
         });
-        mLandmarksDetectionEnabled = mPreferences.getBoolean(KEY_LANDMARKS_DETECTION, true);
-        mLandmarksDetection = (ImageView) findViewById(R.id.landmarks_detection_switcher);
-        mLandmarksDetection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mLandmarksDetectionEnabled = !mPreferences.getBoolean(KEY_LANDMARKS_DETECTION, true);
-                if (mLandmarksDetectionEnabled) {
-                    mLandmarksDetection.setImageResource(R.drawable.landmarks_ic_on);
-                } else {
-                    mLandmarksDetection.setImageResource(R.drawable.landmarks_ic_off);
-                }
-                mPreferences.edit().putBoolean(KEY_LANDMARKS_DETECTION, mLandmarksDetectionEnabled).apply();
-                Dlib.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
-                DlibMod.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
-                HaarCascade.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
-                LbpCascade.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
-                FaceTracker.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
-            }
-        });
-        if (mLandmarksDetectionEnabled) {
-            mLandmarksDetection.setImageResource(R.drawable.landmarks_ic_on);
-        } else {
-            mLandmarksDetection.setImageResource(R.drawable.landmarks_ic_off);
-        }
-
-        mDlibRadioButton = (RadioButton) findViewById(R.id.dlib_radio_button);
-        mDlibRadioButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setFaceRecognition(OnGetImageListener.DLIB_FACE_RECOGNITION);
-            }
-        });
-        mDlibModRadioButton = (RadioButton) findViewById(R.id.dlib_mod_radio_button);
-        mDlibModRadioButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setFaceRecognition(OnGetImageListener.DLIB_MOD_FACE_RECOGNITION);
-            }
-        });
-        mHaarRadioButton = (RadioButton) findViewById(R.id.haar_radio_button);
-        mHaarRadioButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setFaceRecognition(OnGetImageListener.HAAR_FACE_RECOGNITION);
-            }
-        });
-        mLbpRadioButton = (RadioButton) findViewById(R.id.lbp_radio_button);
-        mLbpRadioButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setFaceRecognition(OnGetImageListener.LBP_FACE_RECOGNITION);
-            }
-        });
 
         mMilRadioButton = (RadioButton) findViewById(R.id.mil_tracker);
         mMilRadioButton.setOnClickListener(new View.OnClickListener() {
@@ -486,15 +417,11 @@ public class CameraActivity extends Activity implements View.OnClickListener {
             }
         });
 
-        int type = mPreferences.getInt(KEY_DETECTION_FEATURE, OnGetImageListener.DLIB_FACE_RECOGNITION);
+        int type = mPreferences.getInt(KEY_DETECTION_FEATURE, OnGetImageListener.MEDIANFLOW_FACE_TRACKER);
         setFaceRecognition(type);
     }
 
     private void setFaceRecognition(int type) {
-        mDlibRadioButton.setChecked(type == OnGetImageListener.DLIB_FACE_RECOGNITION);
-        mDlibModRadioButton.setChecked(type == OnGetImageListener.DLIB_MOD_FACE_RECOGNITION);
-        mHaarRadioButton.setChecked(type == OnGetImageListener.HAAR_FACE_RECOGNITION);
-        mLbpRadioButton.setChecked(type == OnGetImageListener.LBP_FACE_RECOGNITION);
         mMilRadioButton.setChecked(type == OnGetImageListener.MIL_FACE_TRACKER);
         mKcfRadioButton.setChecked(type == OnGetImageListener.KCF_FACE_TRACKER);
         mBoostingRadioButton.setChecked(type == OnGetImageListener.BOOSTING_FACE_TRACKER);
@@ -527,14 +454,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     REQUEST_PERMISSIONS_CODE
             );
         } else {
-            mDlibFaceDetector = DlibFaceDetector.getInstance(this);
-            mDlibFaceDetector.asyncInit();
-            mDlibModFaceDetector = DlibModFaceDetector.getInstance(this);
-            mDlibModFaceDetector.asyncInit();
-            mHaarFaceDetector = HaarFaceDetector.getInstance(this);
-            mHaarFaceDetector.asyncInit();
-            mLbpFaceDetector = LbpFaceDetector.getInstance(this);
-            mLbpFaceDetector.asyncInit();
             mObjTracker = ObjTracker.getInstance(this);
             mObjTracker.asyncInit();
         }
@@ -550,14 +469,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     return;
                 }
             }
-            mDlibFaceDetector = DlibFaceDetector.getInstance(this);
-            mDlibFaceDetector.asyncInit();
-            mHaarFaceDetector = HaarFaceDetector.getInstance(this);
-            mHaarFaceDetector.asyncInit();
-            mLbpFaceDetector = LbpFaceDetector.getInstance(this);
-            mLbpFaceDetector.asyncInit();
-            mDlibModFaceDetector = DlibModFaceDetector.getInstance(this);
-            mDlibModFaceDetector.asyncInit();
             mObjTracker = ObjTracker.getInstance(this);
             mObjTracker.asyncInit();
         }
@@ -616,10 +527,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     protected void onPause() {
         super.onPause();
         stopListenToCamera();
-        Dlib.release();
-        DlibMod.release();
-        HaarCascade.release();
-        LbpCascade.release();
         FaceTracker.release();
         if (mFloatingWindow != null) {
             mFloatingWindow.release();
@@ -845,7 +752,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mFloatingWindow = new FloatingPreviewWindow(this);
 
         mOnGetPreviewListener.initialize(this, mFloatingWindow, mScore,
-                mCameraPreviewFrameRate, mMouthOpen, mLandmarksDetectionEnabled, mInferenceHandler);
+                mCameraPreviewFrameRate, mMouthOpen, mInferenceHandler);
 
         runOnUiThread(new Runnable() {
             @Override

@@ -31,7 +31,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   g_pJniInteger = new JNI_Integer(env);
   g_pJniFloat = new JNI_Float(env);
   g_pJniPointF = new JNI_PointF(env);
-  g_pJNI_DetectedFace = new JNI_DetectedFace(env);
+//  g_pJNI_DetectedFace = new JNI_DetectedFace(env);
 
   DLOG(INFO) << "JNI_OnLoad exit";
   return JNI_VERSION_1_6;

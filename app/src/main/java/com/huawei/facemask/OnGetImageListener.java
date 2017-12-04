@@ -23,7 +23,6 @@ import android.view.Display;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.huawei.dlib.ImageUtils;
 import com.huawei.opencv.ObjTracker;
 
 /**
@@ -31,10 +30,6 @@ import com.huawei.opencv.ObjTracker;
  */
 class OnGetImageListener implements OnImageAvailableListener {
 
-    static final int DLIB_MOD_FACE_RECOGNITION = 0;
-    static final int DLIB_FACE_RECOGNITION = 1;
-    static final int HAAR_FACE_RECOGNITION = 3;
-    static final int LBP_FACE_RECOGNITION = 4;
     static final int MIL_FACE_TRACKER = 6;
     static final int KCF_FACE_TRACKER = 7;
     static final int BOOSTING_FACE_TRACKER = 8;
@@ -63,7 +58,7 @@ class OnGetImageListener implements OnImageAvailableListener {
     private FloatingPreviewWindow mFloatingWindow;
     private float mBrightness;
     private float mContrast;
-    private int mFaceRecognition = DLIB_FACE_RECOGNITION;
+    private int mFaceRecognition = MEDIANFLOW_FACE_TRACKER;
     private boolean mOperational;
     private static long sFrameCount;
     private static float sFrameSum;
@@ -72,7 +67,7 @@ class OnGetImageListener implements OnImageAvailableListener {
 
     void initialize(Activity activity, FloatingPreviewWindow floatingWindow,
                     TextView score, TextView frameRate,
-                    TextView mouthOpen, boolean detectLandmarks,
+                    TextView mouthOpen,
                     Handler handler) {
         mActivity = activity;
         mScore = score;
@@ -83,11 +78,7 @@ class OnGetImageListener implements OnImageAvailableListener {
         mFloatingWindow = floatingWindow;
         Display display = ((WindowManager) activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         display.getRealSize(mScreenSize);
-        Dlib.setLandmarksDetection(activity, detectLandmarks);
-        DlibMod.setLandmarksDetection(activity, detectLandmarks);
-        HaarCascade.setLandmarksDetection(activity, detectLandmarks);
-        LbpCascade.setLandmarksDetection(activity, detectLandmarks);
-        FaceTracker.setLandmarksDetection(activity, detectLandmarks);
+        FaceTracker.setLandmarksDetection(activity);
     }
 
     private boolean isOperational() {
@@ -99,10 +90,6 @@ class OnGetImageListener implements OnImageAvailableListener {
         sLastFrameRate = 0;
         sFrameCount = 0;
         sFrameSum = 0;
-        Dlib.clearStatistics();
-        DlibMod.clearStatistics();
-        HaarCascade.clearStatistics();
-        LbpCascade.clearStatistics();
         FaceTracker.clearStatistics();
     }
 
@@ -272,18 +259,6 @@ class OnGetImageListener implements OnImageAvailableListener {
                     @Override
                     public void run() {
                         switch (mFaceRecognition) {
-                            case DLIB_FACE_RECOGNITION:
-                                Dlib.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
-                                break;
-                            case DLIB_MOD_FACE_RECOGNITION:
-                                DlibMod.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
-                                break;
-                            case HAAR_FACE_RECOGNITION:
-                                HaarCascade.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
-                                break;
-                            case LBP_FACE_RECOGNITION:
-                                LbpCascade.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
-                                break;
                             case MIL_FACE_TRACKER:
                                 FaceTracker.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.MIL_TRACKER_ALGORITHM);
                                 break;
