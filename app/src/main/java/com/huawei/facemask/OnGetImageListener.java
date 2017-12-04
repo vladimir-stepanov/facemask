@@ -33,10 +33,8 @@ class OnGetImageListener implements OnImageAvailableListener {
 
     static final int DLIB_MOD_FACE_RECOGNITION = 0;
     static final int DLIB_FACE_RECOGNITION = 1;
-    static final int GMS_FACE_RECOGNITION = 2;
     static final int HAAR_FACE_RECOGNITION = 3;
     static final int LBP_FACE_RECOGNITION = 4;
-    static final int SEETAFACE_RECOGNITION = 5;
     static final int MIL_FACE_TRACKER = 6;
     static final int KCF_FACE_TRACKER = 7;
     static final int BOOSTING_FACE_TRACKER = 8;
@@ -87,8 +85,6 @@ class OnGetImageListener implements OnImageAvailableListener {
         display.getRealSize(mScreenSize);
         Dlib.setLandmarksDetection(activity, detectLandmarks);
         DlibMod.setLandmarksDetection(activity, detectLandmarks);
-        Seetaface.setLandmarksDetection(activity, detectLandmarks);
-        GmsVision.setLandmarksDetection(activity, detectLandmarks);
         HaarCascade.setLandmarksDetection(activity, detectLandmarks);
         LbpCascade.setLandmarksDetection(activity, detectLandmarks);
         FaceTracker.setLandmarksDetection(activity, detectLandmarks);
@@ -105,7 +101,6 @@ class OnGetImageListener implements OnImageAvailableListener {
         sFrameSum = 0;
         Dlib.clearStatistics();
         DlibMod.clearStatistics();
-        GmsVision.clearStatistics();
         HaarCascade.clearStatistics();
         LbpCascade.clearStatistics();
         FaceTracker.clearStatistics();
@@ -282,12 +277,6 @@ class OnGetImageListener implements OnImageAvailableListener {
                                 break;
                             case DLIB_MOD_FACE_RECOGNITION:
                                 DlibMod.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
-                                break;
-                            case GMS_FACE_RECOGNITION:
-                                GmsVision.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
-                                break;
-                            case SEETAFACE_RECOGNITION:
-                                Seetaface.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);
                                 break;
                             case HAAR_FACE_RECOGNITION:
                                 HaarCascade.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap);

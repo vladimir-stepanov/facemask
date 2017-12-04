@@ -11,10 +11,8 @@
     <string name="image_size">Size of image for recognition: <xliff:g id="width">%d</xliff:g>x<xliff:g id="height">%d</xliff:g>px</string>
     <string name="vision_euler">EulerY: <xliff:g id="y">%.2f</xliff:g> EulerZ: <xliff:g id="z">%.2f</xliff:g></string>
     <string name="dlib_face_recognition">DLIB</string>
-    <string name="gms_vision_face_recognition">GMS Vision</string>
     <string name="haar_face_recognition">HAAR</string>
     <string name="lbp_face_recognition">LBP</string>
-    <string name="seetaface_alignment_recognition">SeetaFace</string>
     <string name="dlib_mod_face_recognition">DLIB+LBP</string>
     <string name="landmarks_caption">Landmarks</string>
     <string name="file_not_found">ERROR!\nFile \"%s\" not found.</string>

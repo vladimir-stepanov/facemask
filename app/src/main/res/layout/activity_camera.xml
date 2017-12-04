@@ -121,17 +121,6 @@
                         android:layout_height="wrap_content"
                         android:text="@string/dlib_mod_face_recognition" />
 
-                    <RadioButton
-                        android:id="@+id/gms_radio_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/gms_vision_face_recognition" />
-
-                    <RadioButton
-                        android:id="@+id/seetaface_radio_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/seetaface_alignment_recognition" />
                 </LinearLayout>
 
                 <ImageView
