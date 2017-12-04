@@ -183,21 +183,81 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 tools:ignore="RelativeOverlap">
 
-                <RadioButton
-                    android:id="@+id/haar_radio_button"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/haar_face_recognition" />
+                    android:orientation="vertical"
+                    tools:ignore="RelativeOverlap">
 
-                <RadioButton
-                    android:id="@+id/lbp_radio_button"
+                    <RadioButton
+                        android:id="@+id/haar_radio_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/haar_face_recognition" />
+
+                    <RadioButton
+                        android:id="@+id/lbp_radio_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/lbp_face_recognition" />
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/lbp_face_recognition" />
+                    android:orientation="vertical"
+                    tools:ignore="RelativeOverlap">
 
+                    <RadioButton
+                        android:id="@+id/mil_tracker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/mil_opencv_tracker" />
+
+                    <RadioButton
+                        android:id="@+id/kcf_tracker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/kcf_opencv_tracker" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    tools:ignore="RelativeOverlap">
+
+                    <RadioButton
+                        android:id="@+id/boosting_tracker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/boosting_opencv_tracker" />
+
+                    <RadioButton
+                        android:id="@+id/medianflow_tracker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/medianflow_opencv_tracker" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    tools:ignore="RelativeOverlap">
+
+                    <RadioButton
+                        android:id="@+id/tld_tracker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tld_opencv_tracker" />
+                </LinearLayout>
             </LinearLayout>
 
             <View

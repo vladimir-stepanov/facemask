@@ -55,6 +55,7 @@ import com.huawei.dlib.DlibModFaceDetector;
 import com.huawei.opencv.HaarFaceDetector;
 import com.huawei.opencv.LbpFaceDetector;
 import com.huawei.seetaface.SeetafaceDetector;
+import com.huawei.opencv.ObjTracker;
 import com.huawei.utils.MediaUtils;
 
 import java.util.ArrayList;
@@ -175,12 +176,18 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     private SeetafaceDetector mSeetafaceDetector;
     private HaarFaceDetector mHaarFaceDetector;
     private LbpFaceDetector mLbpFaceDetector;
+    private ObjTracker mObjTracker;
     private RadioButton mDlibRadioButton;
     private RadioButton mDlibModRadioButton;
     private RadioButton mGmsRadioButton;
     private RadioButton mSeetafaceRadioButton;
     private RadioButton mHaarRadioButton;
     private RadioButton mLbpRadioButton;
+    private RadioButton mMilRadioButton;
+    private RadioButton mKcfRadioButton;
+    private RadioButton mBoostingRadioButton;
+    private RadioButton mMedianflowRadioButton;
+    private RadioButton mTldRadioButton;
     private ImageView mLandmarksDetection;
     private boolean mLandmarksDetectionEnabled;
     /**
@@ -455,6 +462,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 Seetaface.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
                 HaarCascade.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
                 LbpCascade.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
+                FaceTracker.setLandmarksDetection(CameraActivity.this, mLandmarksDetectionEnabled);
             }
         });
         if (mLandmarksDetectionEnabled) {
@@ -505,6 +513,47 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 setFaceRecognition(OnGetImageListener.LBP_FACE_RECOGNITION);
             }
         });
+
+        mMilRadioButton = (RadioButton) findViewById(R.id.mil_tracker);
+        mMilRadioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setFaceRecognition(OnGetImageListener.MIL_FACE_TRACKER);
+            }
+        });
+
+        mKcfRadioButton = (RadioButton) findViewById(R.id.kcf_tracker);
+        mKcfRadioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setFaceRecognition(OnGetImageListener.KCF_FACE_TRACKER);
+            }
+        });
+
+        mBoostingRadioButton = (RadioButton) findViewById(R.id.boosting_tracker);
+        mBoostingRadioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setFaceRecognition(OnGetImageListener.BOOSTING_FACE_TRACKER);
+            }
+        });
+
+        mMedianflowRadioButton = (RadioButton) findViewById(R.id.medianflow_tracker);
+        mMedianflowRadioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setFaceRecognition(OnGetImageListener.MEDIANFLOW_FACE_TRACKER);
+            }
+        });
+
+        mTldRadioButton = (RadioButton) findViewById(R.id.tld_tracker);
+        mTldRadioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setFaceRecognition(OnGetImageListener.TLD_FACE_TRACKER);
+            }
+        });
+
         int type = mPreferences.getInt(KEY_DETECTION_FEATURE, OnGetImageListener.DLIB_FACE_RECOGNITION);
         setFaceRecognition(type);
     }
@@ -516,6 +565,11 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mHaarRadioButton.setChecked(type == OnGetImageListener.HAAR_FACE_RECOGNITION);
         mLbpRadioButton.setChecked(type == OnGetImageListener.LBP_FACE_RECOGNITION);
         mSeetafaceRadioButton.setChecked(type == OnGetImageListener.SEETAFACE_RECOGNITION);
+        mMilRadioButton.setChecked(type == OnGetImageListener.MIL_FACE_TRACKER);
+        mKcfRadioButton.setChecked(type == OnGetImageListener.KCF_FACE_TRACKER);
+        mBoostingRadioButton.setChecked(type == OnGetImageListener.BOOSTING_FACE_TRACKER);
+        mMedianflowRadioButton.setChecked(type == OnGetImageListener.MEDIANFLOW_FACE_TRACKER);
+        mTldRadioButton.setChecked(type == OnGetImageListener.TLD_FACE_TRACKER);
         ImageHandler.setFaceRecognition(type);
         MovieHandler.setFaceRecognition(type);
         mOnGetPreviewListener.setFaceRecognition(type);
@@ -555,6 +609,8 @@ public class CameraActivity extends Activity implements View.OnClickListener {
             mHaarFaceDetector.asyncInit();
             mLbpFaceDetector = LbpFaceDetector.getInstance(this);
             mLbpFaceDetector.asyncInit();
+            mObjTracker = ObjTracker.getInstance(this);
+            mObjTracker.asyncInit();
         }
     }
 
@@ -578,6 +634,8 @@ public class CameraActivity extends Activity implements View.OnClickListener {
             mDlibModFaceDetector.asyncInit();
             mSeetafaceDetector = SeetafaceDetector.getInstance(this);
             mSeetafaceDetector.asyncInit();
+            mObjTracker = ObjTracker.getInstance(this);
+            mObjTracker.asyncInit();
         }
     }
 
@@ -680,6 +738,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         Seetaface.release();
         HaarCascade.release();
         LbpCascade.release();
+        FaceTracker.release();
         if (mFloatingWindow != null) {
             mFloatingWindow.release();
             mFloatingWindow = null;
@@ -1043,18 +1102,33 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 mSourceCameraButton.setImageResource(R.drawable.ic_camera_selected);
                 mSourceImagesButton.setImageResource(R.drawable.ic_images);
                 mSourceVideoButton.setImageResource(R.drawable.ic_video);
+                mMilRadioButton.setVisibility(View.VISIBLE);
+                mKcfRadioButton.setVisibility(View.VISIBLE);
+                mBoostingRadioButton.setVisibility(View.VISIBLE);
+                mMedianflowRadioButton.setVisibility(View.VISIBLE);
+                mTldRadioButton.setVisibility(View.VISIBLE);
             }
         } else if (view == mSourceImagesButton) {
             if (setSourceForRecognition(SOURCE_IMAGES)) {
                 mSourceCameraButton.setImageResource(R.drawable.ic_camera);
                 mSourceImagesButton.setImageResource(R.drawable.ic_images_selected);
                 mSourceVideoButton.setImageResource(R.drawable.ic_video);
+                mMilRadioButton.setVisibility(View.INVISIBLE);
+                mKcfRadioButton.setVisibility(View.INVISIBLE);
+                mBoostingRadioButton.setVisibility(View.INVISIBLE);
+                mMedianflowRadioButton.setVisibility(View.INVISIBLE);
+                mTldRadioButton.setVisibility(View.INVISIBLE);
             }
         } else if (view == mSourceVideoButton) {
             if (setSourceForRecognition(SOURCE_MOVIE)) {
                 mSourceCameraButton.setImageResource(R.drawable.ic_camera);
                 mSourceImagesButton.setImageResource(R.drawable.ic_images);
                 mSourceVideoButton.setImageResource(R.drawable.ic_video_selected);
+                mMilRadioButton.setVisibility(View.INVISIBLE);
+                mKcfRadioButton.setVisibility(View.INVISIBLE);
+                mBoostingRadioButton.setVisibility(View.INVISIBLE);
+                mMedianflowRadioButton.setVisibility(View.INVISIBLE);
+                mTldRadioButton.setVisibility(View.INVISIBLE);
             }
         } else if (view == mSwitchCameraButton) {
             stopListenToCamera();

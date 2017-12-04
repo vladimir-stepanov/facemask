@@ -22,4 +22,9 @@
     <string name="folder_images_is_empty">ERROR!\nFolder Facemask/Images is empty.</string>
     <string name="folder_movies_not_found">ERROR!\nFolder Facemask/Movies was not found.</string>
     <string name="folder_movies_is_empty">ERROR!\nFolder Facemask/Movies is empty.</string>
+    <string name="mil_opencv_tracker">MIL</string>
+    <string name="boosting_opencv_tracker">BOOSTING</string>
+    <string name="medianflow_opencv_tracker">MEDIANFLOW</string>
+    <string name="tld_opencv_tracker">TLD</string>
+    <string name="kcf_opencv_tracker">KCF</string>
 </resources>

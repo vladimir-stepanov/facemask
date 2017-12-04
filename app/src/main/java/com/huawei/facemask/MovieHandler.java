@@ -22,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.huawei.opencv.ObjTracker;
 import com.huawei.utils.MediaUtils;
 
 import java.io.File;
@@ -29,12 +30,17 @@ import java.io.FilenameFilter;
 
 import grapevine.face1.FaceView;
 
+import static com.huawei.facemask.OnGetImageListener.BOOSTING_FACE_TRACKER;
 import static com.huawei.facemask.OnGetImageListener.DLIB_FACE_RECOGNITION;
 import static com.huawei.facemask.OnGetImageListener.DLIB_MOD_FACE_RECOGNITION;
 import static com.huawei.facemask.OnGetImageListener.GMS_FACE_RECOGNITION;
 import static com.huawei.facemask.OnGetImageListener.HAAR_FACE_RECOGNITION;
+import static com.huawei.facemask.OnGetImageListener.KCF_FACE_TRACKER;
 import static com.huawei.facemask.OnGetImageListener.LBP_FACE_RECOGNITION;
 import static com.huawei.facemask.OnGetImageListener.SEETAFACE_RECOGNITION;
+import static com.huawei.facemask.OnGetImageListener.MEDIANFLOW_FACE_TRACKER;
+import static com.huawei.facemask.OnGetImageListener.MIL_FACE_TRACKER;
+import static com.huawei.facemask.OnGetImageListener.TLD_FACE_TRACKER;
 
 class MovieHandler {
 
@@ -117,6 +123,7 @@ class MovieHandler {
         HaarCascade.clearStatistics();
         LbpCascade.clearStatistics();
         Seetaface.clearStatistics();
+        FaceTracker.clearStatistics();
     }
 
     static void setShowMask(boolean showMask) {
@@ -239,6 +246,21 @@ class MovieHandler {
                                 break;
                             case LBP_FACE_RECOGNITION:
                                 LbpCascade.detectFace(activity, faceView, score, mouthOpen, out, sShowMask);
+                                break;
+                            case MIL_FACE_TRACKER:
+                                //FaceTracker.detectFace(activity, faceView, score, mouthOpen, out, sShowMask, ObjTracker.MIL_TRACKER_ALGORITHM);
+                                break;
+                            case BOOSTING_FACE_TRACKER:
+                                //FaceTracker.detectFace(activity, faceView, score, mouthOpen, out, sShowMask, ObjTracker.BOOSTING_TRACKER_ALGORITHM);
+                                break;
+                            case TLD_FACE_TRACKER:
+                                //FaceTracker.detectFace(activity, faceView, score, mouthOpen, out, sShowMask, ObjTracker.TLD_TRACKER_ALGORITHM);
+                                break;
+                            case MEDIANFLOW_FACE_TRACKER:
+                                //FaceTracker.detectFace(activity, faceView, score, mouthOpen, out, sShowMask, ObjTracker.MEDIANFLOW_TRACKER_ALGORITHM);
+                                break;
+                            case KCF_FACE_TRACKER:
+                                //FaceTracker.detectFace(activity, faceView, score, mouthOpen, out, sShowMask, ObjTracker.KCF_TRACKER_ALGORITHM);
                                 break;
                         }
                         if (sRunning) {

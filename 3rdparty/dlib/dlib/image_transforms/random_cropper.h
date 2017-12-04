@@ -175,7 +175,7 @@ namespace dlib
             extract_image_chip(img, crop_plan, crop);
             const rectangle_transform tform = get_mapping_to_chip(crop_plan);
 
-            const unsigned long min_object_height_absolute = std::round(min_object_height*crop_plan.rows);
+            const unsigned long min_object_height_absolute = ::round(min_object_height*crop_plan.rows);
 
             // copy rects into crop_rects and set ones that are outside the crop to ignore or
             // drop entirely as appropriate.

@@ -19,6 +19,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror")
 ## Define each subfolders
 set(LBP_DETECTION_SRC jni/lbp_detections)
 set(HAAR_DETECTION_SRC jni/haar_detections)
+set(TRACKER_SRC jni/tracker)
 set(DLIB_DETECTION_INCLUDE jni/dlib_detections)
 set(DLIB_DETECTION_SRC jni/dlib_detections)
 set(DLIB_MOD_DETECTION_SRC jni/dlib_mod_detections)
@@ -27,7 +28,7 @@ set(JNI_COMMON_SRC jni/jni_common)
 set(EXT_DIR ../3rdparty)
 set(DLIB_DIR ${EXT_DIR}/dlib)
 set(GLOG_INCLUDE_DIR ${EXT_DIR}/miniglog)
-set(OPENCV_PREBUILT ${EXT_DIR}/opencv/sdk/native/jni)
+set(OPENCV_PREBUILT ${EXT_DIR}/opencv/jni)
 
 set(SEETAFACE_DETECTION_SRC jni/seetaface_detections)
 set(SEETAFACE_ALIGNMENT ${EXT_DIR}/seetaface-engine/FaceAlignment)
@@ -109,6 +110,12 @@ add_library(seetaface_jni SHARED
             ${DLIB_DIR}/dlib/threads/threads_kernel_2.cpp
             ${EXT_DIR}/miniglog/glog/logging.cc)
 
+add_library(tracker_jni SHARED
+            ${TRACKER_SRC}/tracker.cpp
+            ${JNI_COMMON_SRC}/jni_bitmap2mat.cpp
+            ${JNI_COMMON_SRC}/jni_utils.cpp
+            ${EXT_DIR}/miniglog/glog/logging.cc)
+
 target_link_libraries(dlib_jni
                       android
                       jnigraphics
@@ -152,5 +159,15 @@ target_link_libraries(seetaface_jni
                       opencv_core
                       opencv_objdetect
                       opencv_calib3d
+                      log)
+
+target_link_libraries(tracker_jni
+                      android
+                      jnigraphics
+                      opencv_imgproc
+                      opencv_core
+                      opencv_objdetect
+                      opencv_calib3d
+                      opencv_tracking
                       log)
 

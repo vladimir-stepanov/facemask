@@ -24,6 +24,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.huawei.dlib.ImageUtils;
+import com.huawei.opencv.ObjTracker;
 
 import grapevine.face1.FaceView;
 
@@ -31,12 +32,18 @@ import grapevine.face1.FaceView;
  * Class that takes in preview frames and converts the image to Bitmaps to process with dlib lib.
  */
 class OnGetImageListener implements OnImageAvailableListener {
+
     static final int DLIB_MOD_FACE_RECOGNITION = 0;
     static final int DLIB_FACE_RECOGNITION = 1;
     static final int GMS_FACE_RECOGNITION = 2;
     static final int HAAR_FACE_RECOGNITION = 3;
     static final int LBP_FACE_RECOGNITION = 4;
     static final int SEETAFACE_RECOGNITION = 5;
+    static final int MIL_FACE_TRACKER = 6;
+    static final int KCF_FACE_TRACKER = 7;
+    static final int BOOSTING_FACE_TRACKER = 8;
+    static final int MEDIANFLOW_FACE_TRACKER = 9;
+    static final int TLD_FACE_TRACKER = 10;
     private static final String TAG = "OnGetImageListener";
     private static final boolean GRAY = false;
     private static final boolean CONTRAST = true;
@@ -89,6 +96,7 @@ class OnGetImageListener implements OnImageAvailableListener {
         GmsVision.setLandmarksDetection(activity, detectLandmarks);
         HaarCascade.setLandmarksDetection(activity, detectLandmarks);
         LbpCascade.setLandmarksDetection(activity, detectLandmarks);
+        FaceTracker.setLandmarksDetection(activity, detectLandmarks);
     }
 
     private boolean isOperational() {
@@ -103,6 +111,9 @@ class OnGetImageListener implements OnImageAvailableListener {
         Dlib.clearStatistics();
         DlibMod.clearStatistics();
         GmsVision.clearStatistics();
+        HaarCascade.clearStatistics();
+        LbpCascade.clearStatistics();
+        FaceTracker.clearStatistics();
     }
 
     void setOperational(boolean value) {
@@ -297,6 +308,21 @@ class OnGetImageListener implements OnImageAvailableListener {
                                 break;
                             case LBP_FACE_RECOGNITION:
                                 LbpCascade.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask);
+                                break;
+                            case MIL_FACE_TRACKER:
+                                FaceTracker.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask, ObjTracker.MIL_TRACKER_ALGORITHM);
+                                break;
+                            case BOOSTING_FACE_TRACKER:
+                                FaceTracker.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask, ObjTracker.BOOSTING_TRACKER_ALGORITHM);
+                                break;
+                            case TLD_FACE_TRACKER:
+                                FaceTracker.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask, ObjTracker.TLD_TRACKER_ALGORITHM);
+                                break;
+                            case MEDIANFLOW_FACE_TRACKER:
+                                FaceTracker.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask, ObjTracker.MEDIANFLOW_TRACKER_ALGORITHM);
+                                break;
+                            case KCF_FACE_TRACKER:
+                                FaceTracker.detectFace(mActivity, mFaceView, mScore, mMouthOpen, mCroppedBitmap, mShowMask, ObjTracker.KCF_TRACKER_ALGORITHM);
                                 break;
                         }
                         if (isOperational()) {
