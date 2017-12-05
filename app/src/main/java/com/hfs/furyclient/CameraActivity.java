@@ -252,7 +252,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mCameraPreviewFrameRate.setText(getResources().getString(R.string.camera_preview_frame_rate, 30.0f, 30.0f));
         mTopPanel = findViewById(R.id.topPanel);
 
-        mCameraFacing = CameraCharacteristics.LENS_FACING_FRONT;
+        mCameraFacing = CameraCharacteristics.LENS_FACING_BACK;
 
         mSwitchCameraButton = (ImageView) findViewById(R.id.switch_camera_button);
         mSwitchCameraButton.setOnClickListener(this);

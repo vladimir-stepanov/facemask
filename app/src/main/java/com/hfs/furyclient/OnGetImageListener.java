@@ -38,7 +38,7 @@ class OnGetImageListener implements OnImageAvailableListener {
     static final int MEDIANFLOW_TRACKER = 9;
     static final int TLD_TRACKER = 10;
     private static final String TAG = "OnGetImageListener";
-    private static final boolean CONTRAST = true;
+    private static final boolean CONTRAST = false;
     static float scale = 0.5f;
     private final Point mScreenSize = new Point();
     private Activity mActivity;
@@ -62,7 +62,7 @@ class OnGetImageListener implements OnImageAvailableListener {
     private static long sFrameCount;
     private static float sFrameSum;
     private static float sAverageFrameRate;
-    private int mCameraFacing = CameraCharacteristics.LENS_FACING_FRONT;
+    private int mCameraFacing = CameraCharacteristics.LENS_FACING_BACK;
 
     void initialize(Activity activity, FloatingPreviewWindow floatingWindow,
                     TextView score, TextView frameRate,
