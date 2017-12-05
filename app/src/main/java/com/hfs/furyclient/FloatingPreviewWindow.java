@@ -1,5 +1,6 @@
-package com.huawei.facemask;
+package com.hfs.furyclient;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -43,8 +44,13 @@ class FloatingPreviewWindow {
         mPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
         mUIHandler = new Handler(Looper.getMainLooper());
         mScreenSize = new Point();
-        Display display = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-        display.getRealSize(mScreenSize);
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            mScreenSize.set(1080, 1920);
+        } else {
+            Display display = wm.getDefaultDisplay();
+            display.getRealSize(mScreenSize);
+        }
 
         mProportion = (float) mScreenSize.x / mScreenSize.y;
         // Default window size
@@ -191,7 +197,9 @@ class FloatingPreviewWindow {
             super(window.mContext);
             mWeakRef = new WeakReference<>(window);
             mLayoutInflater = (LayoutInflater) window.mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            mLayoutInflater.inflate(R.layout.cam_window_view, this, true);
+            if (mLayoutInflater != null) {
+                mLayoutInflater.inflate(R.layout.cam_window_view, this, true);
+            }
             mColorView = (ImageView) findViewById(R.id.preview);
             // Sets up interactions
             mScaleGestureDetector = new ScaleGestureDetector(window.mContext, mScaleGestureListener);
@@ -247,6 +255,7 @@ class FloatingPreviewWindow {
             }
         }
 
+        @SuppressLint("ClickableViewAccessibility")
         @Override
         public boolean onTouchEvent(MotionEvent event) {
             boolean retVal = mScaleGestureDetector.onTouchEvent(event);

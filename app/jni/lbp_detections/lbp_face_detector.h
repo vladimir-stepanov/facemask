@@ -5,7 +5,7 @@
 #include <memory>
 #include <mutex>
 
-#define LBP_FACE_DETECTOR "com/huawei/opencv/LbpFaceDetector"
+#define LBP_FACE_DETECTOR "com/hfs/opencv/LbpFaceDetector"
 
 using namespace std;
 using namespace cv;

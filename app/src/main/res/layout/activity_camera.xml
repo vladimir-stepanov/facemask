@@ -42,12 +42,6 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorTextPanel" />
 
-            <TextView
-                android:id="@+id/mouth_open"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/colorTextPanel" />
-
         </LinearLayout>
 
         <ImageView
@@ -156,82 +150,6 @@
                 android:background="@color/white_20" />
 
         </LinearLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/image_brightness_caption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:paddingBottom="@dimen/panel_padding"
-                android:paddingEnd="@dimen/footer_panel_padding"
-                android:paddingStart="@dimen/footer_panel_padding"
-                android:paddingTop="@dimen/panel_padding"
-                android:text="@string/brightness_caption"
-                android:textColor="@color/white" />
-
-            <SeekBar
-                android:id="@+id/brightness_seek_bar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/image_brightness_caption"
-                android:layout_toStartOf="@+id/brightness_default" />
-
-            <ImageView
-                android:id="@+id/brightness_default"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:clickable="true"
-                android:contentDescription="@string/app_name"
-                android:padding="@dimen/footer_panel_padding"
-                android:src="@drawable/ic_default" />
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/image_contrast_caption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:paddingBottom="@dimen/panel_padding"
-                android:paddingEnd="@dimen/footer_panel_padding"
-                android:paddingStart="@dimen/footer_panel_padding"
-                android:paddingTop="@dimen/panel_padding"
-                android:text="@string/contrast_caption"
-                android:textColor="@color/white" />
-
-            <SeekBar
-                android:id="@+id/contrast_seek_bar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/image_contrast_caption"
-                android:layout_toStartOf="@+id/contrast_default" />
-
-            <ImageView
-                android:id="@+id/contrast_default"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:clickable="true"
-                android:contentDescription="@string/app_name"
-                android:padding="@dimen/footer_panel_padding"
-                android:src="@drawable/ic_default" />
-
-        </RelativeLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"

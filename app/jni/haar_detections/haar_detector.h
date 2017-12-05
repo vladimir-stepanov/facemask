@@ -5,7 +5,7 @@
 #include <memory>
 #include <mutex>
 
-#define HAAR_DETECTOR "com/huawei/opencv/HaarDetector"
+#define HAAR_DETECTOR "com/hfs/opencv/HaarDetector"
 
 using namespace std;
 using namespace cv;

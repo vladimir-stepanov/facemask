@@ -1,6 +1,5 @@
-package com.huawei.facemask;
+package com.hfs.opencv;
 
-@SuppressWarnings({"JniMissingFunction"})
 public class ImageUtils {
     /**
      * Converts YUV420 semi-planar data to ARGB 8888 data using the supplied width
@@ -13,7 +12,6 @@ public class ImageUtils {
      * @param uvPixelStride
      * @param width         The width of the input image.
      * @param height        The height of the input image.
-     * @param halfSize      If true, downsample to 50% in each dimension, otherwise not.
      * @param output        A pre-allocated array for the ARGB 8:8:8:8 output data.
      */
     @SuppressWarnings("JavaDoc")
@@ -26,6 +24,5 @@ public class ImageUtils {
             int height,
             int yRowStride,
             int uvRowStride,
-            int uvPixelStride,
-            boolean halfSize);
+            int uvPixelStride);
 }

@@ -1,7 +1,6 @@
-package com.huawei.facemask;
+package com.hfs.furyclient;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -48,7 +47,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.huawei.opencv.ObjTracker;
+import com.hfs.opencv.ObjTracker;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -112,7 +111,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
 
     private TextView mScore;
     private TextView mCameraPreviewFrameRate;
-    private TextView mMouthOpen;
     private View mTopPanel;
     private ImageView mSwitchCameraButton;
 
@@ -145,8 +143,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                 public void onSurfaceTextureUpdated(final SurfaceTexture texture) {
                 }
             };
-    private TextView mImageBrightnessCaption;
-    private TextView mImageContrastCaption;
     private ImageView mVisibilitySwitcher;
     private FloatingPreviewWindow mFloatingWindow;
     private SharedPreferences mPreferences;
@@ -188,8 +184,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     finish();
                 }
             };
-    private SeekBar mBrightnessBar;
-    private SeekBar mContrastBar;
     private SeekBar mPreviewSizeBar;
 
     /**
@@ -200,7 +194,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
      * @param choices The list of sizes that the camera supports for the intended output class
      * @return The optimal {@code Size}, or an arbitrary one if none were big enough
      */
-    @SuppressLint("LongLogTag")
+    @SuppressWarnings("ConstantConditions")
     private static Size chooseOptimalSize(Context context, Size[] choices) {
         // Collect the supported resolutions that are at least as big as the preview Surface
         Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
@@ -234,7 +228,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    @SuppressLint("StringFormatMatches")
+    @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
 
@@ -256,8 +250,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mScore.setText(R.string.initializing_engine);
         mCameraPreviewFrameRate = (TextView) findViewById(R.id.camera_preview_frame_rate);
         mCameraPreviewFrameRate.setText(getResources().getString(R.string.camera_preview_frame_rate, 30.0f, 30.0f));
-        mMouthOpen = (TextView) findViewById(R.id.mouth_open);
-        mMouthOpen.setText(getResources().getString(R.string.mouth_open, 0f));
         mTopPanel = findViewById(R.id.topPanel);
 
         mCameraFacing = CameraCharacteristics.LENS_FACING_FRONT;
@@ -269,17 +261,10 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mImageSizeCaption = (TextView) findViewById(R.id.image_size_caption);
 
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mOnGetPreviewListener.setContrast(1.0f);
-        mOnGetPreviewListener.setBrightness(0f);
-        mImageBrightnessCaption = (TextView) findViewById(R.id.image_brightness_caption);
-        mImageBrightnessCaption.setText(getString(R.string.brightness_caption, 0f));
-        mImageContrastCaption = (TextView) findViewById(R.id.image_contrast_caption);
-        mImageContrastCaption.setText(getString(R.string.contrast_caption, 1f));
         mPreviewSizeBar = (SeekBar) findViewById(R.id.preview_size_seek_bar);
         mPreviewSizeBar.setMax(SEEK_BAR_MAX);
         mPreviewSizeBar.setProgress((int) (OnGetImageListener.scale * SEEK_BAR_MAX));
         mPreviewSizeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @SuppressLint("StringFormatInvalid")
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 // Set size of image for recognition
@@ -299,66 +284,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
-        mBrightnessBar = (SeekBar) findViewById(R.id.brightness_seek_bar);
-        mBrightnessBar.setMax(510);
-        mBrightnessBar.setProgress(255);
-        mBrightnessBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float brightness = progress - 255;
-                mOnGetPreviewListener.setBrightness(brightness);
-                mImageBrightnessCaption.setText(getString(R.string.brightness_caption, brightness));
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
-        ImageView brightnessButton = (ImageView) findViewById(R.id.brightness_default);
-        brightnessButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mBrightnessBar.setProgress(255);
-            }
-        });
-        mContrastBar = (SeekBar) findViewById(R.id.contrast_seek_bar);
-        mContrastBar.setMax(200);
-        mContrastBar.setProgress(100);
-        mContrastBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float contrast;
-                if (progress == 100) {
-                    contrast = 1.0f;
-                } else if (progress > 100) {
-                    contrast = 1.0f + (progress - 100.0f) / 11.111111111111f;
-
-                } else {
-                    contrast = (float) progress / 100.0f;
-                }
-                mOnGetPreviewListener.setContrast(contrast);
-                mImageContrastCaption.setText(getString(R.string.contrast_caption, contrast));
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
-        ImageView contrastButton = (ImageView) findViewById(R.id.contrast_default);
-        contrastButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mContrastBar.setProgress(100);
             }
         });
         mVisibilitySwitcher = (ImageView) findViewById(R.id.visibility_switcher);
@@ -454,7 +379,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     REQUEST_PERMISSIONS_CODE
             );
         } else {
-            mObjTracker = ObjTracker.getInstance(this);
+            mObjTracker = ObjTracker.getInstance();
             mObjTracker.asyncInit();
         }
     }
@@ -469,7 +394,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     return;
                 }
             }
-            mObjTracker = ObjTracker.getInstance(this);
+            mObjTracker = ObjTracker.getInstance();
             mObjTracker.asyncInit();
         }
     }
@@ -554,12 +479,11 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     /**
      * Sets up member variables related to camera.
      */
-    @SuppressLint({"LongLogTag", "StringFormatInvalid"})
     private void setUpCameraOutputs() {
         final CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             // Check the facing types of camera devices
-            String[] cameraList = manager.getCameraIdList();
+            @SuppressWarnings("ConstantConditions") String[] cameraList = manager.getCameraIdList();
             for (final String cameraId : cameraList) {
                 final CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
                 final Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
@@ -597,7 +521,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     /**
      * Opens the camera specified by {@link #mCameraId}.
      */
-    @SuppressLint("LongLogTag")
     private void openCamera(final int width, final int height) {
         setUpCameraOutputs();
         configureTransform(width, height);
@@ -610,6 +533,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
                     != PackageManager.PERMISSION_GRANTED) {
                 Log.w(TAG, "checkSelfPermission CAMERA");
             }
+            //noinspection ConstantConditions
             manager.openCamera(mCameraId, stateCallback, mBackgroundHandler);
             Log.d(TAG, "open Camera");
         } catch (final CameraAccessException e) {
@@ -660,7 +584,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     /**
      * Stops the background thread and its {@link Handler}.
      */
-    @SuppressLint("LongLogTag")
     private void stopBackgroundThread() {
         mBackgroundThread.quitSafely();
         mInferenceThread.quitSafely();
@@ -680,7 +603,6 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     /**
      * Creates a new {@link CameraCaptureSession} for camera preview.
      */
-    @SuppressLint("LongLogTag")
     private void createCameraPreviewSession() {
         try {
             final SurfaceTexture texture = mTextureView.getSurfaceTexture();
@@ -752,7 +674,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mFloatingWindow = new FloatingPreviewWindow(this);
 
         mOnGetPreviewListener.initialize(this, mFloatingWindow, mScore,
-                mCameraPreviewFrameRate, mMouthOpen, mInferenceHandler);
+                mCameraPreviewFrameRate, mInferenceHandler);
 
         runOnUiThread(new Runnable() {
             @Override

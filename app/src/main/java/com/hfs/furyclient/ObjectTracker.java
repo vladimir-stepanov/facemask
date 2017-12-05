@@ -1,8 +1,7 @@
-package com.huawei.facemask;
+package com.hfs.furyclient;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,17 +9,14 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.widget.TextView;
 
-import com.huawei.opencv.ObjTracker;
+import com.hfs.opencv.ObjTracker;
 
 import java.util.List;
 
 class ObjectTracker {
 
     private static final Paint sLandmarkPaint = new Paint();
-    @SuppressLint("StaticFieldLeak")
     private static ObjTracker sObjTracker;
-    @SuppressWarnings({"FieldCanBeLocal", "unused"})
-    private static boolean sDetectLandmarks;
     private static long sRecognitionTime;
     private static float sRecognitionTimeSum;
     private static long sNativeRecognitionTime;
@@ -49,14 +45,13 @@ class ObjectTracker {
         sFrameCount = 0;
     }
 
-    static void setLandmarksDetection(Context context) {
+    static void setLandmarksDetection() {
         clearStatistics();
-        sObjTracker = ObjTracker.getInstance(context);
+        sObjTracker = ObjTracker.getInstance();
     }
 
     @SuppressWarnings("UnusedParameters")
-    static void detectObject(final Activity activity, final TextView score,
-                             final TextView mouth, Bitmap bitmap, String alg) {
+    static void detectObject(final Activity activity, final TextView score, Bitmap bitmap, String alg) {
         List<Rect> objs = null;
         if (sObjTracker != null) {
             if (sObjTracker.isInitiated()) {
@@ -101,18 +96,18 @@ class ObjectTracker {
             }
         }
 
-        if (objs != null && objs.size() > 0) {
-            // Draw one obj only on preview bitmap
-            Rect obj = objs.get(0);
-            Canvas canvas = new Canvas(bitmap);
-            float scale = (float) bitmap.getHeight() / 192;
-            if (scale < 1) {
-                scale = 1.0f;
+        if (objs != null) {
+            for (Rect obj : objs) {
+                // Draw one obj only on preview bitmap
+                Canvas canvas = new Canvas(bitmap);
+                float scale = (float) bitmap.getHeight() / 192;
+                if (scale < 1) {
+                    scale = 1.0f;
+                }
+                // Draw box
+                sLandmarkPaint.setStrokeWidth(scale);
+                canvas.drawRect(obj, sLandmarkPaint);
             }
-            // Draw box
-            sLandmarkPaint.setColor(Color.RED);
-            sLandmarkPaint.setStrokeWidth(scale);
-            canvas.drawRect(obj, sLandmarkPaint);
         }
     }
 }

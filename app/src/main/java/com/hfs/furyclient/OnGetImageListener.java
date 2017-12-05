@@ -1,4 +1,4 @@
-package com.huawei.facemask;
+package com.hfs.furyclient;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -23,11 +23,13 @@ import android.view.Display;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.huawei.opencv.ObjTracker;
+import com.hfs.opencv.ImageUtils;
+import com.hfs.opencv.ObjTracker;
 
 /**
  * Class that takes in preview frames and converts the image to Bitmaps to process with dlib lib.
  */
+@SuppressWarnings("FieldCanBeLocal")
 class OnGetImageListener implements OnImageAvailableListener {
 
     static final int MIL_TRACKER = 6;
@@ -36,7 +38,6 @@ class OnGetImageListener implements OnImageAvailableListener {
     static final int MEDIANFLOW_TRACKER = 9;
     static final int TLD_TRACKER = 10;
     private static final String TAG = "OnGetImageListener";
-    private static final boolean GRAY = false;
     private static final boolean CONTRAST = true;
     static float scale = 0.5f;
     private final Point mScreenSize = new Point();
@@ -51,12 +52,11 @@ class OnGetImageListener implements OnImageAvailableListener {
     private Handler mInferenceHandler;
     private TextView mScore;
     private TextView mFrameRate;
-    private TextView mMouthOpen;
     private static long sLastElapsedTime = 0;
     private static float sLastFrameRate = 0;
     private FloatingPreviewWindow mFloatingWindow;
-    private float mBrightness;
-    private float mContrast;
+    private final float mBrightness = 0f;
+    private final float mContrast = 1.0f;
     private int mObjRecognition = MEDIANFLOW_TRACKER;
     private boolean mOperational;
     private static long sFrameCount;
@@ -66,17 +66,20 @@ class OnGetImageListener implements OnImageAvailableListener {
 
     void initialize(Activity activity, FloatingPreviewWindow floatingWindow,
                     TextView score, TextView frameRate,
-                    TextView mouthOpen,
                     Handler handler) {
         mActivity = activity;
         mScore = score;
         mFrameRate = frameRate;
-        mMouthOpen = mouthOpen;
         mInferenceHandler = handler;
         mFloatingWindow = floatingWindow;
-        Display display = ((WindowManager) activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-        display.getRealSize(mScreenSize);
-        ObjectTracker.setLandmarksDetection(activity);
+        WindowManager wm = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE);
+        if (wm == null) {
+            mScreenSize.set(1080, 1920);
+        } else {
+            Display display = wm.getDefaultDisplay();
+            display.getRealSize(mScreenSize);
+        }
+        ObjectTracker.setLandmarksDetection();
     }
 
     private boolean isOperational() {
@@ -94,16 +97,6 @@ class OnGetImageListener implements OnImageAvailableListener {
     void setOperational(boolean value) {
         clearStatistics();
         mOperational = value;
-    }
-
-    void setBrightness(float brightness) {
-        clearStatistics();
-        mBrightness = brightness;
-    }
-
-    void setContrast(float contrast) {
-        clearStatistics();
-        mContrast = contrast;
     }
 
     void setCameraFacing(int cameraFacing) {
@@ -126,17 +119,7 @@ class OnGetImageListener implements OnImageAvailableListener {
             sideInversion.postRotate(-90);
         }
         Bitmap outBmp;
-        if (GRAY) {
-            Bitmap inBmp = Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), sideInversion, false);
-            outBmp = Bitmap.createBitmap(inBmp.getWidth(), inBmp.getHeight(), Bitmap.Config.ARGB_8888);
-            Canvas c = new Canvas(outBmp);
-            Paint paint = new Paint();
-            ColorMatrix cm = new ColorMatrix();
-            cm.setSaturation(0);
-            ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
-            paint.setColorFilter(f);
-            c.drawBitmap(inBmp, 0, 0, paint);
-        } else if (CONTRAST) {
+        if (CONTRAST) {
             // contrast = 0..10 1 is default
             // brightness = -255..255 0 is default
             Bitmap inBmp = Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), sideInversion, false);
@@ -170,7 +153,7 @@ class OnGetImageListener implements OnImageAvailableListener {
 
         long elapsedTime = SystemClock.elapsedRealtime();
 
-        if (sLastElapsedTime != 0) {
+        if (sLastElapsedTime != 0 && (elapsedTime > sLastElapsedTime)) {
             float frameRate = 1000f / (elapsedTime - sLastElapsedTime);
             if (sLastFrameRate == 0) {
                 sLastFrameRate = frameRate;
@@ -238,8 +221,7 @@ class OnGetImageListener implements OnImageAvailableListener {
                     mPreviewHeight,
                     yRowStride,
                     uvRowStride,
-                    uvPixelStride,
-                    false);
+                    uvPixelStride);
 
             image.close();
         } catch (final Exception e) {
@@ -258,19 +240,19 @@ class OnGetImageListener implements OnImageAvailableListener {
                     public void run() {
                         switch (mObjRecognition) {
                             case MIL_TRACKER:
-                                ObjectTracker.detectObject(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.MIL_TRACKER_ALGORITHM);
+                                ObjectTracker.detectObject(mActivity, mScore, mCroppedBitmap, ObjTracker.MIL_TRACKER_ALGORITHM);
                                 break;
                             case BOOSTING_TRACKER:
-                                ObjectTracker.detectObject(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.BOOSTING_TRACKER_ALGORITHM);
+                                ObjectTracker.detectObject(mActivity, mScore, mCroppedBitmap, ObjTracker.BOOSTING_TRACKER_ALGORITHM);
                                 break;
                             case TLD_TRACKER:
-                                ObjectTracker.detectObject(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.TLD_TRACKER_ALGORITHM);
+                                ObjectTracker.detectObject(mActivity, mScore, mCroppedBitmap, ObjTracker.TLD_TRACKER_ALGORITHM);
                                 break;
                             case MEDIANFLOW_TRACKER:
-                                ObjectTracker.detectObject(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.MEDIANFLOW_TRACKER_ALGORITHM);
+                                ObjectTracker.detectObject(mActivity, mScore, mCroppedBitmap, ObjTracker.MEDIANFLOW_TRACKER_ALGORITHM);
                                 break;
                             case KCF_TRACKER:
-                                ObjectTracker.detectObject(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.KCF_TRACKER_ALGORITHM);
+                                ObjectTracker.detectObject(mActivity, mScore, mCroppedBitmap, ObjTracker.KCF_TRACKER_ALGORITHM);
                                 break;
                         }
                         if (isOperational()) {

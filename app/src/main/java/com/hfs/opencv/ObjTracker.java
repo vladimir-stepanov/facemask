@@ -1,7 +1,6 @@
-package com.huawei.opencv;
+package com.hfs.opencv;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Environment;
@@ -13,7 +12,7 @@ import java.util.List;
 
 public class ObjTracker {
     private static final String TAG = "ObjTracker";
-    protected static final Object LOCK = new Object();
+    private static final Object LOCK = new Object();
     public static final String KCF_TRACKER_ALGORITHM = "KCF";
     public static final String MIL_TRACKER_ALGORITHM = "MIL";
     public static final String TLD_TRACKER_ALGORITHM = "TLD";
@@ -34,7 +33,6 @@ public class ObjTracker {
         }
     }
 
-    private Context mContext;
     private boolean mInitiated;
     private boolean mInitialising;
 
@@ -45,16 +43,15 @@ public class ObjTracker {
     private long mNativeObjDetectorContext;
     public long mSpentTime;
 
-    private ObjTracker(Context context) {
+    private ObjTracker() {
         mInitiated = false;
         mInitialising = false;
-        mContext = context;
     }
 
-    public static ObjTracker getInstance(Context context) {
+    public static ObjTracker getInstance() {
         synchronized (LOCK) {
             if (sObjTracker == null) {
-                sObjTracker = new ObjTracker(context);
+                sObjTracker = new ObjTracker();
             }
             return sObjTracker;
         }
@@ -87,7 +84,7 @@ public class ObjTracker {
         }
     }
 
-    public void init() {
+    private void init() {
         if (isInitialising()) {
             return;
         }
@@ -98,7 +95,7 @@ public class ObjTracker {
     }
 
     public void asyncInit() {
-        new ObjTracker.InitThread(mContext).start();
+        new ObjTracker.InitThread().start();
     }
 
     public List<Rect> detect(Bitmap bitmap, String alg) {
@@ -131,11 +128,8 @@ public class ObjTracker {
 
     private class InitThread extends Thread {
 
-        private Context mContext;
-
-        InitThread(Context context) {
+        InitThread() {
             super("InitThread");
-            mContext = context;
         }
 
         public void run() {
