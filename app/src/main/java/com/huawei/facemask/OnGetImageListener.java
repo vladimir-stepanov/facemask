@@ -30,11 +30,11 @@ import com.huawei.opencv.ObjTracker;
  */
 class OnGetImageListener implements OnImageAvailableListener {
 
-    static final int MIL_FACE_TRACKER = 6;
-    static final int KCF_FACE_TRACKER = 7;
-    static final int BOOSTING_FACE_TRACKER = 8;
-    static final int MEDIANFLOW_FACE_TRACKER = 9;
-    static final int TLD_FACE_TRACKER = 10;
+    static final int MIL_TRACKER = 6;
+    static final int KCF_TRACKER = 7;
+    static final int BOOSTING_TRACKER = 8;
+    static final int MEDIANFLOW_TRACKER = 9;
+    static final int TLD_TRACKER = 10;
     private static final String TAG = "OnGetImageListener";
     private static final boolean GRAY = false;
     private static final boolean CONTRAST = true;
@@ -49,7 +49,6 @@ class OnGetImageListener implements OnImageAvailableListener {
     private Bitmap mCroppedBitmap = null;
     private boolean mIsComputing = false;
     private Handler mInferenceHandler;
-    // Dlib face detector
     private TextView mScore;
     private TextView mFrameRate;
     private TextView mMouthOpen;
@@ -58,7 +57,7 @@ class OnGetImageListener implements OnImageAvailableListener {
     private FloatingPreviewWindow mFloatingWindow;
     private float mBrightness;
     private float mContrast;
-    private int mFaceRecognition = MEDIANFLOW_FACE_TRACKER;
+    private int mObjRecognition = MEDIANFLOW_TRACKER;
     private boolean mOperational;
     private static long sFrameCount;
     private static float sFrameSum;
@@ -74,11 +73,10 @@ class OnGetImageListener implements OnImageAvailableListener {
         mFrameRate = frameRate;
         mMouthOpen = mouthOpen;
         mInferenceHandler = handler;
-        // Get Dlib face detector
         mFloatingWindow = floatingWindow;
         Display display = ((WindowManager) activity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         display.getRealSize(mScreenSize);
-        FaceTracker.setLandmarksDetection(activity);
+        ObjectTracker.setLandmarksDetection(activity);
     }
 
     private boolean isOperational() {
@@ -90,7 +88,7 @@ class OnGetImageListener implements OnImageAvailableListener {
         sLastFrameRate = 0;
         sFrameCount = 0;
         sFrameSum = 0;
-        FaceTracker.clearStatistics();
+        ObjectTracker.clearStatistics();
     }
 
     void setOperational(boolean value) {
@@ -113,9 +111,9 @@ class OnGetImageListener implements OnImageAvailableListener {
         mCameraFacing = cameraFacing;
     }
 
-    void setFaceRecognition(int recognition) {
+    void setObjRecognition(int recognition) {
         clearStatistics();
-        mFaceRecognition = recognition;
+        mObjRecognition = recognition;
     }
 
     private Bitmap imageSideInversion(Bitmap src) {
@@ -125,7 +123,7 @@ class OnGetImageListener implements OnImageAvailableListener {
             sideInversion.postRotate(-90);
         } else {
             sideInversion.setScale(scale, scale);
-            sideInversion.postRotate(90);
+            sideInversion.postRotate(-90);
         }
         Bitmap outBmp;
         if (GRAY) {
@@ -258,21 +256,21 @@ class OnGetImageListener implements OnImageAvailableListener {
                 new Runnable() {
                     @Override
                     public void run() {
-                        switch (mFaceRecognition) {
-                            case MIL_FACE_TRACKER:
-                                FaceTracker.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.MIL_TRACKER_ALGORITHM);
+                        switch (mObjRecognition) {
+                            case MIL_TRACKER:
+                                ObjectTracker.detectObject(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.MIL_TRACKER_ALGORITHM);
                                 break;
-                            case BOOSTING_FACE_TRACKER:
-                                FaceTracker.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.BOOSTING_TRACKER_ALGORITHM);
+                            case BOOSTING_TRACKER:
+                                ObjectTracker.detectObject(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.BOOSTING_TRACKER_ALGORITHM);
                                 break;
-                            case TLD_FACE_TRACKER:
-                                FaceTracker.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.TLD_TRACKER_ALGORITHM);
+                            case TLD_TRACKER:
+                                ObjectTracker.detectObject(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.TLD_TRACKER_ALGORITHM);
                                 break;
-                            case MEDIANFLOW_FACE_TRACKER:
-                                FaceTracker.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.MEDIANFLOW_TRACKER_ALGORITHM);
+                            case MEDIANFLOW_TRACKER:
+                                ObjectTracker.detectObject(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.MEDIANFLOW_TRACKER_ALGORITHM);
                                 break;
-                            case KCF_FACE_TRACKER:
-                                FaceTracker.detectFace(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.KCF_TRACKER_ALGORITHM);
+                            case KCF_TRACKER:
+                                ObjectTracker.detectObject(mActivity, mScore, mMouthOpen, mCroppedBitmap, ObjTracker.KCF_TRACKER_ALGORITHM);
                                 break;
                         }
                         if (isOperational()) {

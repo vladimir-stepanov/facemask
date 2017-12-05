@@ -381,7 +381,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mMilRadioButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setFaceRecognition(OnGetImageListener.MIL_FACE_TRACKER);
+                setRecognition(OnGetImageListener.MIL_TRACKER);
             }
         });
 
@@ -389,7 +389,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mKcfRadioButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setFaceRecognition(OnGetImageListener.KCF_FACE_TRACKER);
+                setRecognition(OnGetImageListener.KCF_TRACKER);
             }
         });
 
@@ -397,7 +397,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mBoostingRadioButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setFaceRecognition(OnGetImageListener.BOOSTING_FACE_TRACKER);
+                setRecognition(OnGetImageListener.BOOSTING_TRACKER);
             }
         });
 
@@ -405,7 +405,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mMedianflowRadioButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setFaceRecognition(OnGetImageListener.MEDIANFLOW_FACE_TRACKER);
+                setRecognition(OnGetImageListener.MEDIANFLOW_TRACKER);
             }
         });
 
@@ -413,21 +413,21 @@ public class CameraActivity extends Activity implements View.OnClickListener {
         mTldRadioButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setFaceRecognition(OnGetImageListener.TLD_FACE_TRACKER);
+                setRecognition(OnGetImageListener.TLD_TRACKER);
             }
         });
 
-        int type = mPreferences.getInt(KEY_DETECTION_FEATURE, OnGetImageListener.MEDIANFLOW_FACE_TRACKER);
-        setFaceRecognition(type);
+        int type = mPreferences.getInt(KEY_DETECTION_FEATURE, OnGetImageListener.MEDIANFLOW_TRACKER);
+        setRecognition(type);
     }
 
-    private void setFaceRecognition(int type) {
-        mMilRadioButton.setChecked(type == OnGetImageListener.MIL_FACE_TRACKER);
-        mKcfRadioButton.setChecked(type == OnGetImageListener.KCF_FACE_TRACKER);
-        mBoostingRadioButton.setChecked(type == OnGetImageListener.BOOSTING_FACE_TRACKER);
-        mMedianflowRadioButton.setChecked(type == OnGetImageListener.MEDIANFLOW_FACE_TRACKER);
-        mTldRadioButton.setChecked(type == OnGetImageListener.TLD_FACE_TRACKER);
-        mOnGetPreviewListener.setFaceRecognition(type);
+    private void setRecognition(int type) {
+        mMilRadioButton.setChecked(type == OnGetImageListener.MIL_TRACKER);
+        mKcfRadioButton.setChecked(type == OnGetImageListener.KCF_TRACKER);
+        mBoostingRadioButton.setChecked(type == OnGetImageListener.BOOSTING_TRACKER);
+        mMedianflowRadioButton.setChecked(type == OnGetImageListener.MEDIANFLOW_TRACKER);
+        mTldRadioButton.setChecked(type == OnGetImageListener.TLD_TRACKER);
+        mOnGetPreviewListener.setObjRecognition(type);
         mPreferences.edit().putInt(KEY_DETECTION_FEATURE, type).apply();
     }
 
@@ -527,7 +527,7 @@ public class CameraActivity extends Activity implements View.OnClickListener {
     protected void onPause() {
         super.onPause();
         stopListenToCamera();
-        FaceTracker.release();
+        ObjectTracker.release();
         if (mFloatingWindow != null) {
             mFloatingWindow.release();
             mFloatingWindow = null;

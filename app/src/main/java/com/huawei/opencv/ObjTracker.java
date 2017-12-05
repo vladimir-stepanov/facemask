@@ -6,9 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
-
-import com.huawei.facemask.R;
 
 import java.io.File;
 import java.util.Arrays;
@@ -22,7 +19,7 @@ public class ObjTracker {
     public static final String TLD_TRACKER_ALGORITHM = "TLD";
     public static final String MEDIANFLOW_TRACKER_ALGORITHM = "MEDIANFLOW";
     public static final String BOOSTING_TRACKER_ALGORITHM = "BOOSTING";
-    private static final String CASCADE = "Facemask/lbpcascade_frontalface.xml";
+    private static final String CASCADE = "Facemask/haarcascade_fullbody.xml";
 
     @SuppressLint("StaticFieldLeak")
     private static ObjTracker sObjTracker = null;
@@ -43,9 +40,9 @@ public class ObjTracker {
 
     // accessed by native methods
     @SuppressWarnings("unused")
-    private long mNativeFaceTrackerContext;
+    private long mNativeObjTrackerContext;
     @SuppressWarnings("unused")
-    private long mNativeFaceDetectorContext;
+    private long mNativeObjDetectorContext;
     public long mSpentTime;
 
     private ObjTracker(Context context) {
@@ -62,7 +59,6 @@ public class ObjTracker {
             return sObjTracker;
         }
     }
-
 
     private native static void jniNativeClassInit();
 
@@ -107,8 +103,8 @@ public class ObjTracker {
 
     public List<Rect> detect(Bitmap bitmap, String alg) {
         if (isInitiated()) {
-            Rect[] faces = jniDetect(bitmap, alg);
-            return Arrays.asList(faces);
+            Rect[] objs = jniDetect(bitmap, alg);
+            return Arrays.asList(objs);
         } else {
             return null;
         }

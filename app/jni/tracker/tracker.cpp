@@ -1,10 +1,6 @@
 
-#include <jni_common/jni_bitmap2mat.h>
-#include <jni_common/jni_utils.h>
-#include <memory>
-#include <mutex>
 #include <opencv2/tracking.hpp>
-#include <lbp_detections/lbp_face_detector.h>
+#include <haar_detections/haar_detector.h>
 
 using namespace std;
 using namespace cv;
@@ -73,43 +69,43 @@ namespace {
     };
 
     using TrackerPtr = CvTracker *;
-    using DetectorPtr = LbpDetector *;
+    using DetectorPtr = HaarDetector *;
 
     class JNI_ObjTracker {
     public:
         JNI_ObjTracker(JNIEnv *env) {
             jclass clazz = env->FindClass(OBJ_TRACKER);
-            mNativeFaceTrackerContext = env->GetFieldID(clazz, "mNativeFaceTrackerContext", "J");
-            mNativeFaceDetectorContext = env->GetFieldID(clazz, "mNativeFaceDetectorContext", "J");
+            mNativeObjTrackerContext = env->GetFieldID(clazz, "mNativeObjTrackerContext", "J");
+            mNativeObjDetectorContext = env->GetFieldID(clazz, "mNativeObjDetectorContext", "J");
             mSpentTime = env->GetFieldID(clazz, "mSpentTime", "J");
             env->DeleteLocalRef(clazz);
         }
 
         TrackerPtr getTrackerPtrFromJava(JNIEnv *env, jobject thisObj) {
-            TrackerPtr const p = (TrackerPtr) env->GetLongField(thisObj, mNativeFaceTrackerContext);
+            TrackerPtr const p = (TrackerPtr) env->GetLongField(thisObj, mNativeObjTrackerContext);
             return p;
         }
 
         void setTrackerPtrToJava(JNIEnv *env, jobject thisObj, jlong ptr) {
-            env->SetLongField(thisObj, mNativeFaceTrackerContext, ptr);
+            env->SetLongField(thisObj, mNativeObjTrackerContext, ptr);
         }
 
         DetectorPtr getDetectorPtrFromJava(JNIEnv *env, jobject thisObj) {
             DetectorPtr const p = (DetectorPtr) env->GetLongField(thisObj,
-                                                                  mNativeFaceDetectorContext);
+                                                                  mNativeObjDetectorContext);
             return p;
         }
 
         void setDetectorPtrToJava(JNIEnv *env, jobject thisObj, jlong ptr) {
-            env->SetLongField(thisObj, mNativeFaceDetectorContext, ptr);
+            env->SetLongField(thisObj, mNativeObjDetectorContext, ptr);
         }
 
         void setSpentTime(JNIEnv *env, jobject thisObj, jlong ptr) {
             env->SetLongField(thisObj, mSpentTime, ptr);
         }
 
-        jfieldID mNativeFaceTrackerContext;
-        jfieldID mNativeFaceDetectorContext;
+        jfieldID mNativeObjTrackerContext;
+        jfieldID mNativeObjDetectorContext;
         jfieldID mSpentTime;
     };
 
@@ -159,7 +155,6 @@ namespace {
     }
 }  // end unnamed space
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -188,7 +183,7 @@ TRACKER_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jstring jCascadePath) 
     cv::Ptr<DetectionBasedTracker::IDetector> TrackingDetector = makePtr<CascadeDetectorAdapter>(
             cascade);
     DetectionBasedTracker::Parameters params;
-    DetectorPtr detectorPtr = new LbpDetector(MainDetector, TrackingDetector, params);
+    DetectorPtr detectorPtr = new HaarDetector(MainDetector, TrackingDetector, params);
     detectorPtr->setMinObjectSize(Size(20, 20));
     detectorPtr->setMinNeighbours(1);
     setDetectorPtr(env, thisObj, detectorPtr);
@@ -203,12 +198,12 @@ TRACKER_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jstring jCascadePath) 
 
 JNIEXPORT jobjectArray JNICALL
 TRACKER_JNI_METHOD(jniDetect)(JNIEnv *env, jobject thisObj, jobject bitmap, jstring jAlgorithm) {
-    cv::Rect2d face;
+    cv::Rect2d obj;
     cv::Mat rgbaMat;
     cv::Mat bgrMat;
     cv::Mat grayMat;
     bool needSaveTracker = false;
-    bool faceIsFound = false;
+    bool objIsFound = false;
     bool trackerIsActive = false;
 
     long start = getSystemTime();
@@ -227,31 +222,31 @@ TRACKER_JNI_METHOD(jniDetect)(JNIEnv *env, jobject thisObj, jobject bitmap, jstr
     jniutils::ConvertBitmapToRGBAMat(env, bitmap, rgbaMat, true);
     if (trackerPtr->getInitialBoxIsRequired()) {
         DetectorPtr detectorPtr = getDetectorPtr(env, thisObj);
-        vector<cv::Rect> faces;
+        vector<cv::Rect> objs;
 
         cv::cvtColor(rgbaMat, grayMat, cv::COLOR_RGB2GRAY);
-        detectorPtr->detect(grayMat, faces);
+        detectorPtr->detect(grayMat, objs);
 
-        if (faces.size()) {
-            cv::Rect rect = faces.at(0);
-            face.x = (double) rect.x;
-            face.y = (double) rect.y;
-            face.width = (double) rect.width;
-            face.height = (double) rect.width;
+        if (objs.size()) {
+            cv::Rect rect = objs.at(0);
+            obj.x = (double) rect.x;
+            obj.y = (double) rect.y;
+            obj.width = (double) rect.width;
+            obj.height = (double) rect.height;
 
-            if (face.width > 0 && face.height > 0 && face.x >= 0 && face.y >= 0) {
+            if (obj.width > 0 && obj.height > 0 && obj.x >= 0 && obj.y >= 0) {
                 cv::cvtColor(rgbaMat, bgrMat, cv::COLOR_RGB2BGR);
-                trackerPtr->init(bgrMat, face);
+                trackerPtr->init(bgrMat, obj);
                 needSaveTracker = true;
-                faceIsFound = true;
+                objIsFound = true;
             }
         }
     } else {
         trackerIsActive = true;
         cv::cvtColor(rgbaMat, bgrMat, cv::COLOR_RGB2BGR);
-        faceIsFound = trackerPtr->update(bgrMat, face);
+        objIsFound = trackerPtr->update(bgrMat, obj);
 
-        if (!faceIsFound &&
+        if (!objIsFound &&
                 ((trackerPtr->getAlgorithm().compare("MEDIANFLOW") == 0) ||
                         (trackerPtr->getAlgorithm().compare("KCF") == 0))) {
             trackerPtr->setAlgorithm(DEFAULT_ALGORITHM);
@@ -268,18 +263,18 @@ TRACKER_JNI_METHOD(jniDetect)(JNIEnv *env, jobject thisObj, jobject bitmap, jstr
     getJNI_ObjTracker(env)->setSpentTime(env, thisObj, end - start);
 
 //    if (trackerIsActive) {
-//        LOG(INFO) << "jniDetect( " << algorithm << " ): Is TRACKER found face: " << faceIsFound;
-//        if (faceIsFound) {
+//        LOG(INFO) << "jniDetect( " << algorithm << " ): Is TRACKER found obj: " << objIsFound;
+//        if (objIsFound) {
 //            LOG(INFO)
-//            << "jniDetect( " << algorithm << " ):" << " x=" << face.x << ", y =" << face.y << ", w="
-//            << face.width << ", h = " << face.height;
+//            << "jniDetect( " << algorithm << " ):" << " x=" << obj.x << ", y =" << obj.y << ", w="
+//            << obj.width << ", h = " << obj.height;
 //        }
 //    } else {
-//        LOG(INFO) << "jniDetect( " << algorithm << " ): Is DETECTOR found face: " << faceIsFound;
-//        if (faceIsFound) {
+//        LOG(INFO) << "jniDetect( " << algorithm << " ): Is DETECTOR found obj: " << objIsFound;
+//        if (objIsFound) {
 //            LOG(INFO)
-//            << "jniDetect( " << algorithm << " ):" << " x=" << face.x << ", y =" << face.y << ", w="
-//            << face.width << ", h = " << face.height;
+//            << "jniDetect( " << algorithm << " ):" << " x=" << obj.x << ", y =" << obj.y << ", w="
+//            << obj.width << ", h = " << obj.height;
 //        }
 //    }
 
@@ -287,12 +282,12 @@ TRACKER_JNI_METHOD(jniDetect)(JNIEnv *env, jobject thisObj, jobject bitmap, jstr
     jclass rectClass = env->FindClass("android/graphics/Rect");
     jmethodID constructor = env->GetMethodID(rectClass, "<init>", "(IIII)V");
 
-    if (face.width > 0 && face.height > 0) {
+    if (obj.width > 0 && obj.height > 0) {
         ret = (jobjectArray) env->NewObjectArray(1, rectClass, JAVA_NULL);
 
-        jobject rect = env->NewObject(rectClass, constructor, (int) face.x, (int) face.y,
-                                      (int) (face.x + face.width),
-                                      (int) (face.y + face.height));
+        jobject rect = env->NewObject(rectClass, constructor, (int) obj.x, (int) obj.y,
+                                      (int) (obj.x + obj.width),
+                                      (int) (obj.y + obj.height));
         env->SetObjectArrayElement(ret, 0, rect);
     } else {
         ret = (jobjectArray) env->NewObjectArray(0, rectClass, JAVA_NULL);
