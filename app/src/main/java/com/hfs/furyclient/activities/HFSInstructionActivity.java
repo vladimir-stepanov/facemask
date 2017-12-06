@@ -1,7 +1,6 @@
 package com.hfs.furyclient.activities;
 
 import android.Manifest;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
@@ -59,10 +58,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import static android.Manifest.permission.CAMERA;
-
-/**
- * Created by hfs on 30.11.2017.
- */
 
 public class HFSInstructionActivity extends AppCompatActivity
         implements HFSInstructionHintView.HFSHintViewClickListener,
@@ -204,7 +199,6 @@ public class HFSInstructionActivity extends AppCompatActivity
         display.getRealSize(mScreenSize);
 
         mCameraFacing = CameraCharacteristics.LENS_FACING_BACK;
-        mOnGetPreviewListener.setObjRecognition(HFSOnGetImageListener.MEDIANFLOW_TRACKER);
         mTextureView = (TextureView) findViewById(R.id.texture);
         mControlView = findViewById(R.id.instruction_control_view);
         mControlView.setListener(this);
@@ -281,9 +275,7 @@ public class HFSInstructionActivity extends AppCompatActivity
             mHintView.setListener(this);
             loadStep(mInstruction.getCurrentStepId());
             startListenToCamera();
-            mOnGetPreviewListener.initialize(this);
-            mObjTracker = HFSObjTracker.getInstance();
-            mObjTracker.asyncInit();
+            mOnGetPreviewListener.initialize(this, mInferenceHandler);
         } else {
             Toast.makeText(this, "Instruction is null!", Toast.LENGTH_SHORT).show();
             finish();
@@ -367,7 +359,6 @@ public class HFSInstructionActivity extends AppCompatActivity
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
         mOnGetPreviewListener.setOperational(true);
-        HFSOnGetImageListener.clearStatistics();
     }
 
     private void stopListenToCamera() {

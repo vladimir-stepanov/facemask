@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
 import android.media.Image;
 import android.media.ImageReader;
@@ -12,23 +13,15 @@ import android.os.Handler;
 import android.view.Display;
 import android.view.WindowManager;
 
-import com.hfs.furyclient.opencv.HFSImageUtils;
 import com.hfs.furyclient.opencv.HFSObjTracker;
 
-/**
- * Created by hfs on 06.12.2017.
- */
+import java.util.ArrayList;
+import java.util.List;
 
 public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListener {
-    public static final int MEDIANFLOW_TRACKER = 9;
     public static float scale = 0.5f;
-    private static long sFrameCount;
-    private static float sFrameSum;
-    private static float sAverageFrameRate;
+    private Handler mInferenceHandler;
     private final Point mScreenSize = new Point();
-    private final float mBrightness = 0f;
-    private final float mContrast = 1.0f;
-    private Activity mActivity;
     private int mPreviewWidth = 0;
     private int mPreviewHeight = 0;
     private byte[][] mYUVBytes;
@@ -36,18 +29,12 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
     private Bitmap mRGBFrameBitmap = null;
     private Bitmap mCroppedBitmap = null;
     private boolean mIsComputing = false;
-    private int mObjRecognition = MEDIANFLOW_TRACKER;
     private boolean mOperational;
     private int mCameraFacing = CameraCharacteristics.LENS_FACING_BACK;
+    private static List<Rect> sRectList = new ArrayList<>();
 
-    public static void clearStatistics() {
-        sFrameCount = 0;
-        sFrameSum = 0;
-        HFSObjectTracker.clearStatistics();
-    }
-
-    public void initialize(Activity activity) {
-        mActivity = activity;
+    public void initialize(Activity activity, Handler handler) {
+        mInferenceHandler = handler;
         WindowManager wm = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE);
         if (wm == null) {
             mScreenSize.set(1080, 1920);
@@ -55,7 +42,6 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
             Display display = wm.getDefaultDisplay();
             display.getRealSize(mScreenSize);
         }
-        HFSObjectTracker.setLandmarksDetection();
     }
 
     private boolean isOperational() {
@@ -63,18 +49,7 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
     }
 
     public void setOperational(boolean value) {
-        clearStatistics();
         mOperational = value;
-    }
-
-    public void setCameraFacing(int cameraFacing) {
-        clearStatistics();
-        mCameraFacing = cameraFacing;
-    }
-
-    public void setObjRecognition(int recognition) {
-        clearStatistics();
-        mObjRecognition = recognition;
     }
 
     private Bitmap imageSideInversion(Bitmap src) {
@@ -139,7 +114,7 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
             final int yRowStride = planes[0].getRowStride();
             final int uvRowStride = planes[1].getRowStride();
             final int uvPixelStride = planes[1].getPixelStride();
-            HFSImageUtils.convertYUV420ToARGB8888(
+            HFSObjTracker.convertYUV420ToARGB8888(
                     mYUVBytes[0],
                     mYUVBytes[1],
                     mYUVBytes[2],
@@ -160,5 +135,22 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
 
         mRGBFrameBitmap.setPixels(mRGBBytes, 0, mPreviewWidth, 0, 0, mPreviewWidth, mPreviewHeight);
         mCroppedBitmap = imageSideInversion(mRGBFrameBitmap);
+
+        mInferenceHandler.post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (sRectList.isEmpty()) {
+                            Rect rect = new Rect(40, 40, 60, 60);
+                            sRectList.add(rect);
+                            HFSObjectTracker.initTracker(mCroppedBitmap, sRectList);
+                        } else {
+                            sRectList.clear();
+                            List<Rect> objs = HFSObjectTracker.trackObject(mCroppedBitmap);
+                            sRectList.addAll(objs);
+                        }
+                        mIsComputing = false;
+                    }
+                });
     }
 }

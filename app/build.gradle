@@ -31,7 +31,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug {
-            jniDebuggable false
+            jniDebuggable true
         }
     }
 
@@ -45,5 +45,5 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
-    compile 'com.google.code.gson:gson:2.8.1';
+    compile 'com.google.code.gson:gson:2.8.1'
 }

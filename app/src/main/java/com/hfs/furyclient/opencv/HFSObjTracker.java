@@ -1,26 +1,41 @@
 package com.hfs.furyclient.opencv;
 
-import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.os.Environment;
 import android.util.Log;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-/**
- * Created by EStepanova on 06.12.2017.
- */
 
 public class HFSObjTracker {
     private static final String TAG = "HFSObjTracker";
     private static final Object LOCK = new Object();
-    public static final String MEDIANFLOW_TRACKER_ALGORITHM = "MEDIANFLOW";
-    private static final String CASCADE = "Facemask/haarcascade_fullbody.xml";
 
-    @SuppressLint("StaticFieldLeak")
+    /**
+     * Converts YUV420 to ARGB8888
+     *
+     * @param y
+     * @param u
+     * @param v
+     * @param output
+     * @param width
+     * @param height
+     * @param yRowStride
+     * @param uvRowStride
+     * @param uvPixelStride
+     */
+    public static native void convertYUV420ToARGB8888(
+            byte[] y,
+            byte[] u,
+            byte[] v,
+            int[] output,
+            int width,
+            int height,
+            int yRowStride,
+            int uvRowStride,
+            int uvPixelStride);
+
     private static HFSObjTracker sObjTracker = null;
 
     static {
@@ -33,19 +48,11 @@ public class HFSObjTracker {
         }
     }
 
-    private boolean mInitiated;
-    private boolean mInitialising;
-
     // accessed by native methods
     @SuppressWarnings("unused")
     private long mNativeObjTrackerContext;
-    @SuppressWarnings("unused")
-    private long mNativeObjDetectorContext;
-    public long mSpentTime;
 
     private HFSObjTracker() {
-        mInitiated = false;
-        mInitialising = false;
     }
 
     public static HFSObjTracker getInstance() {
@@ -59,52 +66,13 @@ public class HFSObjTracker {
 
     private native static void jniNativeClassInit();
 
-    public boolean isInitiated() {
-        synchronized (LOCK) {
-            return mInitiated;
-        }
+    public int init(Bitmap bitmap) {
+        return jniInit(bitmap);
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private void setInitiated(boolean initiated) {
-        synchronized (LOCK) {
-            mInitiated = initiated;
-        }
-    }
-
-    private boolean isInitialising() {
-        synchronized (LOCK) {
-            return mInitialising;
-        }
-    }
-
-    private void setInitialising(boolean initialising) {
-        synchronized (LOCK) {
-            mInitialising = initialising;
-        }
-    }
-
-    private void init() {
-        if (isInitialising()) {
-            return;
-        }
-        setInitialising(true);
-        jniInit(new File(Environment.getExternalStorageDirectory(), CASCADE).getAbsolutePath());
-        setInitiated(true);
-        setInitialising(false);
-    }
-
-    public void asyncInit() {
-        new HFSObjTracker.InitThread().start();
-    }
-
-    public List<Rect> detect(Bitmap bitmap, String alg) {
-        if (isInitiated()) {
-            Rect[] objs = jniDetect(bitmap, alg);
-            return Arrays.asList(objs);
-        } else {
-            return null;
-        }
+    public List<Rect> detect(Bitmap bitmap) {
+        Rect[] objs = jniDetect(bitmap);
+        return Arrays.asList(objs);
     }
 
     @Override
@@ -122,19 +90,8 @@ public class HFSObjTracker {
     private synchronized native int jniDel();
 
     @SuppressWarnings("UnusedReturnValue")
-    private synchronized native int jniInit(String cascadeClassifierPath);
+    private synchronized native int jniInit(Bitmap bitmap);
 
-    private synchronized native Rect[] jniDetect(Bitmap bitmap, String alg);
+    private synchronized native Rect[] jniDetect(Bitmap bitmap);
 
-    private class InitThread extends Thread {
-
-        InitThread() {
-            super("InitThread");
-        }
-
-        public void run() {
-            init();
-        }
-
-    }
 }
