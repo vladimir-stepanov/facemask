@@ -1,7 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="top_panel_text_size">18sp</dimen>
-    <dimen name="panel_padding">4dp</dimen>
-    <dimen name="nav_bar_height">48dp</dimen>
-    <dimen name="footer_panel_padding">12dp</dimen>
-    <integer name="animation_duration">200</integer>
+    <dimen name="small_text_size">16dip</dimen>
+    <dimen name="normal_text_size">20dip</dimen>
+    <dimen name="large_text_size">26dip</dimen>
+    <dimen name="xxlarge_text_size">32dip</dimen>
+    <dimen name="splash_text_size">40dip</dimen>
+
+    <dimen name="instruction_item_padding">20dip</dimen>
+    <dimen name="instruction_hint_padding">15dip</dimen>
+    <dimen name="button_padding">7dip</dimen>
+    <dimen name="button_margin">7dip</dimen>
+
+    <dimen name="close_button_size">30dip</dimen>
+    <dimen name="step_button_size">45dip</dimen>
 </resources>

@@ -1,28 +1,8 @@
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name">Facemask-test</string>
-    <string name="request_permission">This sample needs camera permission.</string>
-    <string name="camera_error">This device does not support Camera2 API.</string>
-    <string name="initializing_engine">Initializing face recognition engine…</string>
-    <string name="object_recognition_time">Recognition time: <xliff:g id="time">%3d</xliff:g> (<xliff:g id="average">%.1f</xliff:g>/<xliff:g id="native_average">%.1f</xliff:g>) mSec <xliff:g id="percent">%2.1f</xliff:g>%%</string>
-    <string name="camera_preview_frame_rate">Frame rate: <xliff:g id="rate">%.2f</xliff:g> (<xliff:g id="average">%.1f</xliff:g>) fps</string>
-    <string name="mouth_open">Mouth \"open\": %.2f</string>
-    <string name="brightness_caption">Brightness: %.0f</string>
-    <string name="contrast_caption">Contrast: %.2f</string>
-    <string name="image_size">Size of image for recognition: <xliff:g id="width">%d</xliff:g>x<xliff:g id="height">%d</xliff:g>px</string>
-    <string name="vision_euler">EulerY: <xliff:g id="y">%.2f</xliff:g> EulerZ: <xliff:g id="z">%.2f</xliff:g></string>
-    <string name="dlib_face_recognition">DLIB</string>
-    <string name="haar_face_recognition">HAAR</string>
-    <string name="lbp_face_recognition">LBP</string>
-    <string name="dlib_mod_face_recognition">DLIB+LBP</string>
-    <string name="landmarks_caption">Landmarks</string>
-    <string name="file_not_found">ERROR!\nFile \"%s\" not found.</string>
-    <string name="folder_images_not_found">ERROR!\nFolder Facemask/Images was not found.</string>
-    <string name="folder_images_is_empty">ERROR!\nFolder Facemask/Images is empty.</string>
-    <string name="folder_movies_not_found">ERROR!\nFolder Facemask/Movies was not found.</string>
-    <string name="folder_movies_is_empty">ERROR!\nFolder Facemask/Movies is empty.</string>
-    <string name="mil_opencv_tracker">MIL</string>
-    <string name="boosting_opencv_tracker">BOOSTING</string>
-    <string name="medianflow_opencv_tracker">MEDIANFLOW</string>
-    <string name="tld_opencv_tracker">TLD</string>
-    <string name="kcf_opencv_tracker">KCF</string>
+<resources>
+    <string name="app_name">FuryClient</string>
+    <string name="splash_text">Harman\nFurious Services</string>
+    <string name="instructions_text">Instructions</string>
+    <string name="got_it_text">Got it!</string>
+
+    <string name="isntruction_completed_text">Congratulations!\nYou\'ve just completed the instruction \'%1$s\'</string>
 </resources>

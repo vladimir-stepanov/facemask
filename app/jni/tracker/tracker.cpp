@@ -8,7 +8,7 @@ using namespace cv;
 namespace {
 
 #define JAVA_NULL 0
-#define OBJ_TRACKER "com/hfs/opencv/ObjTracker"
+#define OBJ_TRACKER "com/hfs/furyclient/opencv/HFSObjTracker"
 #define DEFAULT_ALGORITHM "MIL"
 
     class CvTracker {
@@ -160,7 +160,7 @@ extern "C" {
 #endif
 
 #define TRACKER_JNI_METHOD(METHOD_NAME) \
-  Java_com_hfs_opencv_ObjTracker_##METHOD_NAME
+  Java_com_hfs_furyclient_opencv_HFSObjTracker_##METHOD_NAME
 
 void JNIEXPORT
 TRACKER_JNI_METHOD(jniNativeClassInit)(JNIEnv *env, jclass _this) {}
