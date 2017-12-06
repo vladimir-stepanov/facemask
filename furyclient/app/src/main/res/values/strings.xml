@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">FuryClient</string>
+    <string name="splash_text">Harman\nFurious Services</string>
+    <string name="instructions_text">Instructions</string>
+    <string name="got_it_text">Got it!</string>
+
+    <string name="isntruction_completed_text">Congratulations!\nYou\'ve just completed the instruction \'%1$s\'</string>
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/hintLayoutBackground">
+
+    <com.hfs.furyclient.views.HFSTextView
+        android:id="@+id/instruction_hint_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:paddingEnd="@dimen/instruction_hint_padding"
+        android:paddingStart="@dimen/instruction_hint_padding"
+        android:textAlignment="center"
+        android:textColor="@color/blackTextColor"
+        android:textSize="@dimen/xxlarge_text_size" />
+
+    <com.hfs.furyclient.views.HFSButton
+        android:id="@+id/instruction_hint_button_got_it"
+        style="@style/HFSBlueButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="@string/got_it_text" />
+
+</RelativeLayout>

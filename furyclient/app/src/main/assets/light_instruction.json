@@ -1,0 +1,17 @@
+{
+  "name": "Light",
+  "steps": [
+    {
+      "id": 1,
+      "hint": "This is the first step for instruction 'Light'"
+    },
+    {
+      "id": 2,
+      "hint": "This is the second step for instruction 'Light'"
+    },
+    {
+      "id": 3,
+      "hint": "This is the third step for instruction 'Light'"
+    }
+  ]
+}

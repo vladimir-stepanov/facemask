@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#003C96</color>
+    <color name="colorPrimaryDark">#00265F</color>
+    <color name="colorAccent">#003D99</color>
+    <color name="whiteColor">#ffffff</color>
+
+    <color name="whiteTextColor">#eeffffff</color>
+    <color name="blackTextColor">#ee000000</color>
+    <color name="splashTextColor">#5E5E5E</color>
+    <color name="disabledTextColor">#775E5E5E</color>
+
+    <color name="loadingLayoutBackground">#33000000</color>
+    <color name="hintLayoutBackground">#ddffffff</color>
+
+    <color name="disabledButtonBackgroundColor">#775E5E5E</color>
+    <color name="buttonBackgroundColor">@color/colorPrimaryDark</color>
+    <color name="pressedButtonBackgroundColor">@color/colorPrimary</color>
+
+    <color name="disabledRedButtonBackgroundColor">#775E5E5E</color>
+    <color name="redButtonBackgroundColor">#A30000</color>
+    <color name="pressedRedButtonBackgroundColor">#B70000</color>
+</resources>
