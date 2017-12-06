@@ -280,6 +280,8 @@ public class HFSInstructionActivity extends AppCompatActivity
             }
             mHintView.setListener(this);
             loadStep(mInstruction.getCurrentStepId());
+            startListenToCamera();
+            mOnGetPreviewListener.initialize(this);
             mObjTracker = HFSObjTracker.getInstance();
             mObjTracker.asyncInit();
         } else {

@@ -36,7 +36,6 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
     private Bitmap mRGBFrameBitmap = null;
     private Bitmap mCroppedBitmap = null;
     private boolean mIsComputing = false;
-    private Handler mInferenceHandler;
     private int mObjRecognition = MEDIANFLOW_TRACKER;
     private boolean mOperational;
     private int mCameraFacing = CameraCharacteristics.LENS_FACING_BACK;
@@ -47,9 +46,8 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
         HFSObjectTracker.clearStatistics();
     }
 
-    public void initialize(Activity activity, Handler handler) {
+    public void initialize(Activity activity) {
         mActivity = activity;
-        mInferenceHandler = handler;
         WindowManager wm = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE);
         if (wm == null) {
             mScreenSize.set(1080, 1920);
@@ -91,23 +89,6 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
         Bitmap outBmp;
 
         outBmp = Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), sideInversion, false);
-//        if (CONTRAST) {
-//            // contrast = 0..10 1 is default
-//            // brightness = -255..255 0 is default
-//            Bitmap inBmp = Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), sideInversion, false);
-//            outBmp = Bitmap.createBitmap(inBmp.getWidth(), inBmp.getHeight(), Bitmap.Config.ARGB_8888);
-//            Canvas canvas = new Canvas(outBmp);
-//            ColorMatrix cm = new ColorMatrix(new float[]{
-//                    mContrast, 0, 0, 0, mBrightness,
-//                    0, mContrast, 0, 0, mBrightness,
-//                    0, 0, mContrast, 0, mBrightness,
-//                    0, 0, 0, 1, 0
-//            });
-//            Paint paint = new Paint();
-//            paint.setColorFilter(new ColorMatrixColorFilter(cm));
-//            canvas.drawBitmap(inBmp, 0, 0, paint);
-//        } else {
-//        }
         return outBmp;
     }
 
@@ -179,13 +160,5 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
 
         mRGBFrameBitmap.setPixels(mRGBBytes, 0, mPreviewWidth, 0, 0, mPreviewWidth, mPreviewHeight);
         mCroppedBitmap = imageSideInversion(mRGBFrameBitmap);
-
-        mInferenceHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                HFSObjectTracker.detectObject(mActivity, mCroppedBitmap, HFSObjTracker.MEDIANFLOW_TRACKER_ALGORITHM);
-                mIsComputing = false;
-            }
-        });
     }
 }

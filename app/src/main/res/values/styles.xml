@@ -24,10 +24,10 @@
     </style>
 
     <style name="HFSBlueButtonStyle" parent="HFSButtonStyle">
-        <item name="android:drawable">@drawable/hfs_button_background</item>
+        <item name="android:background">@drawable/hfs_button_background</item>
     </style>
 
     <style name="HFSRedButtonStyle" parent="HFSButtonStyle">
-        <item name="android:drawable">@drawable/red_button_background</item>
+        <item name="android:background">@drawable/red_button_background</item>
     </style>
 </resources>
