@@ -30,11 +30,13 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
     private Bitmap mCroppedBitmap = null;
     private boolean mIsComputing = false;
     private boolean mOperational;
+    private Activity mActivity;
     private int mCameraFacing = CameraCharacteristics.LENS_FACING_BACK;
     private static List<Rect> sRectList = new ArrayList<>();
 
     public void initialize(Activity activity, Handler handler) {
         mInferenceHandler = handler;
+        mActivity = activity;
         WindowManager wm = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE);
         if (wm == null) {
             mScreenSize.set(1080, 1920);
@@ -149,6 +151,14 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
                             List<Rect> objs = HFSObjectTracker.trackObject(mCroppedBitmap);
                             sRectList.addAll(objs);
                         }
+                        mActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // TODO: Draw rectangles
+
+                            }
+                        });
+
                         mIsComputing = false;
                     }
                 });

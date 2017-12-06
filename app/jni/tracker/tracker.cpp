@@ -133,17 +133,18 @@ extern "C" {
 void JNIEXPORT
 TRACKER_JNI_METHOD(jniNativeClassInit)(JNIEnv *env, jclass _this) {}
 
-jint JNIEXPORT JNICALL
-TRACKER_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jobject bitmap) {
+void JNIEXPORT JNICALL
+TRACKER_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jobject bitmap, jintArray rectArray) {
 
     cv::Rect2d obj;
     cv::Mat rgbaMat;
     cv::Mat bgrMat;
 
-    obj.x = 40;
-    obj.y = 40;
-    obj.width = 20;
-    obj.height = 20;
+    jint *rectNative = env->GetIntArrayElements(rectArray, 0);
+    obj.x = rectNative[0];
+    obj.y = rectNative[1];
+    obj.width = rectNative[2];
+    obj.height = rectNative[3];
 
     LOG(INFO) << "Init tracker";
 
@@ -160,8 +161,6 @@ TRACKER_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jobject bitmap) {
     trackerPtr->create();
     trackerPtr->init(bgrMat, obj);
     setTrackerPtr(env, thisObj, trackerPtr);
-
-    return JNI_OK;
 }
 
 JNIEXPORT jobjectArray JNICALL

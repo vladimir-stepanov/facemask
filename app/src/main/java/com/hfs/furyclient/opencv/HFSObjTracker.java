@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.util.Log;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -66,8 +65,16 @@ public class HFSObjTracker {
 
     private native static void jniNativeClassInit();
 
-    public int init(Bitmap bitmap) {
-        return jniInit(bitmap);
+    public void init(Bitmap bitmap, List<Rect> rectList) {
+        int[] rectArray = new int[rectList.size() * 4];
+        for (int i = 0; i < rectList.size(); i++) {
+            Rect rect = rectList.get(i);
+            rectArray[i * 4] = rect.left;
+            rectArray[i * 4 + 1] = rect.top;
+            rectArray[i * 4 + 2] = rect.width();
+            rectArray[i * 4 + 3] = rect.height();
+        }
+        jniInit(bitmap, rectArray);
     }
 
     public List<Rect> detect(Bitmap bitmap) {
@@ -90,7 +97,7 @@ public class HFSObjTracker {
     private synchronized native int jniDel();
 
     @SuppressWarnings("UnusedReturnValue")
-    private synchronized native int jniInit(Bitmap bitmap);
+    private synchronized native void jniInit(Bitmap bitmap, int[] rectArray);
 
     private synchronized native Rect[] jniDetect(Bitmap bitmap);
 

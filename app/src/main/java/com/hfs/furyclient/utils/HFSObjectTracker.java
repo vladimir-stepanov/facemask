@@ -28,7 +28,7 @@ public class HFSObjectTracker {
 
     static void initTracker(Bitmap bitmap, List<Rect> rectList) {
         sObjTracker = HFSObjTracker.getInstance();
-        sObjTracker.init(bitmap);
+        sObjTracker.init(bitmap, rectList);
     }
 
     static List<Rect> trackObject(Bitmap bitmap) {

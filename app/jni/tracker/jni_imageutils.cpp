@@ -8,7 +8,7 @@
 using namespace jnicommon;
 
 #define IMAGEUTILS_METHOD(METHOD_NAME) \
-  Java_com_hfs_furyclient_opencv_HFSImageUtils_##METHOD_NAME  // NOLINT
+  Java_com_hfs_furyclient_opencv_HFSObjTracker_##METHOD_NAME  // NOLINT
 
 #ifdef __cplusplus
 extern "C" {
