@@ -67,7 +67,7 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
             sideInversion.postRotate(-90);
         } else {
             sideInversion.setScale(scale, scale);
-            sideInversion.postRotate(90);
+            sideInversion.postRotate(-90);
         }
         Bitmap outBmp;
 
@@ -149,7 +149,9 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
                     @Override
                     public void run() {
                         if (sRectList.isEmpty()) {
-                            Rect rect = new Rect(100, 100, 300, 300); // hardcoded
+                            Rect rect = new Rect(40, 40, 60, 60);
+                            sRectList.add(rect);
+                            rect = new Rect(120, 140, 140, 160);
                             sRectList.add(rect);
                             HFSObjectTracker.initTracker(mCroppedBitmap, sRectList);
                         } else {

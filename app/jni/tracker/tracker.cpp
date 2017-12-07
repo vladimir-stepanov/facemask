@@ -18,43 +18,34 @@ namespace {
     public:
         CvTracker() {
             isCreated = false;
-            initialBoxIsRequired = true;
         }
 
         void release() {
             if (isCreated) {
-                mTracker.release();
+                mTracker1.release();
+                mTracker2.release();
             }
         }
 
         void create() {
-            mTracker = Tracker::create(mAlgorithm);
-            initialBoxIsRequired = true;
+            mTracker1 = Tracker::create(mAlgorithm);
+            mTracker2 = Tracker::create(mAlgorithm);
             isCreated = true;
         }
 
-        void init(const Mat &image, const Rect2d &inBox) {
+        void init(const Mat &image, const Rect2d &inBox1, const Rect2d &inBox2) {
             if (isCreated) {
-                if (mTracker->init(image, inBox)) {
-                    initialBoxIsRequired = false;
-                }
+                mTracker1->init(image, inBox1);
+                mTracker2->init(image, inBox2);
             }
         }
 
-        bool update(const Mat &image, cv::Rect2d &outBox) {
+        bool update(const Mat &image, cv::Rect2d &outBox1, cv::Rect2d &outBox2) {
             bool res = false;
             if (isCreated) {
-                res = mTracker->update(image, outBox);
+                res = mTracker1->update(image, outBox1) && mTracker2->update(image, outBox2);
             }
             return res;
-        }
-
-        void setInitialBoxIsRequired() {
-            initialBoxIsRequired = true;
-        }
-
-        bool getInitialBoxIsRequired() {
-            return initialBoxIsRequired;
         }
 
         void setAlgorithm(std::string value) {
@@ -64,9 +55,9 @@ namespace {
         virtual ~CvTracker() {}
 
     protected:
-        cv::Ptr<cv::Tracker> mTracker;
+        cv::Ptr<cv::Tracker> mTracker1;
+        cv::Ptr<cv::Tracker> mTracker2;
         bool isCreated;
-        bool initialBoxIsRequired;
         std::string mAlgorithm;
     };
 
@@ -136,15 +127,21 @@ TRACKER_JNI_METHOD(jniNativeClassInit)(JNIEnv *env, jclass _this) {}
 void JNIEXPORT JNICALL
 TRACKER_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jobject bitmap, jintArray rectArray) {
 
-    cv::Rect2d obj;
+    cv::Rect2d obj1;
+    cv::Rect2d obj2;
     cv::Mat rgbaMat;
     cv::Mat bgrMat;
 
     jint *rectNative = env->GetIntArrayElements(rectArray, 0);
-    obj.x = rectNative[0];
-    obj.y = rectNative[1];
-    obj.width = rectNative[2];
-    obj.height = rectNative[3];
+
+    obj1.x = rectNative[0];
+    obj1.y = rectNative[1];
+    obj1.width = rectNative[2];
+    obj1.height = rectNative[3];
+    obj2.x = rectNative[4];
+    obj2.y = rectNative[5];
+    obj2.width = rectNative[6];
+    obj2.height = rectNative[7];
 
     LOG(INFO) << "Init tracker";
 
@@ -159,13 +156,14 @@ TRACKER_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jobject bitmap, jintAr
     trackerPtr = new CvTracker();
     trackerPtr->setAlgorithm("MEDIANFLOW");
     trackerPtr->create();
-    trackerPtr->init(bgrMat, obj);
+    trackerPtr->init(bgrMat, obj1, obj2);
     setTrackerPtr(env, thisObj, trackerPtr);
 }
 
 JNIEXPORT jobjectArray JNICALL
 TRACKER_JNI_METHOD(jniDetect)(JNIEnv *env, jobject thisObj, jobject bitmap) {
-    cv::Rect2d obj;
+    cv::Rect2d obj1;
+    cv::Rect2d obj2;
     cv::Mat rgbaMat;
     cv::Mat bgrMat;
     cv::Mat grayMat;
@@ -175,27 +173,28 @@ TRACKER_JNI_METHOD(jniDetect)(JNIEnv *env, jobject thisObj, jobject bitmap) {
 
     jniutils::ConvertBitmapToRGBAMat(env, bitmap, rgbaMat, true);
     cv::cvtColor(rgbaMat, bgrMat, cv::COLOR_RGB2BGR);
-    objIsFound = trackerPtr->update(bgrMat, obj);
-
-    if (!objIsFound) {
-        LOG(INFO) << "Tracking object has been lost";
-    } else {
-        LOG(INFO) << "Tracking object has been found";
-    }
+    objIsFound = trackerPtr->update(bgrMat, obj1, obj2);
 
     jobjectArray ret;
     jclass rectClass = env->FindClass("android/graphics/Rect");
     jmethodID constructor = env->GetMethodID(rectClass, "<init>", "(IIII)V");
 
-    if (obj.width > 0 && obj.height > 0) {
-        ret = (jobjectArray) env->NewObjectArray(1, rectClass, JAVA_NULL);
-
-        jobject rect = env->NewObject(rectClass, constructor, (int) obj.x, (int) obj.y,
-                                      (int) (obj.x + obj.width),
-                                      (int) (obj.y + obj.height));
-        env->SetObjectArrayElement(ret, 0, rect);
-    } else {
+    if (!objIsFound) {
+        LOG(INFO) << "Tracking object has been lost";
         ret = (jobjectArray) env->NewObjectArray(0, rectClass, JAVA_NULL);
+    } else {
+        LOG(INFO) << "Tracking object has been found";
+        ret = (jobjectArray) env->NewObjectArray(2, rectClass, JAVA_NULL);
+        LOG(INFO) << "Found 1 rect " << obj1.x << ", " << obj1.y << ", " << obj1.width << ", " << obj1.height;
+        jobject rect1 = env->NewObject(rectClass, constructor, (int) obj1.x, (int) obj1.y,
+                                       (int) (obj1.x + obj1.width),
+                                       (int) (obj1.y + obj1.height));
+        env->SetObjectArrayElement(ret, 0, rect1);
+        LOG(INFO) << "Found 2 rect " << obj2.x << ", " << obj2.y << ", " << obj2.width << ", " << obj2.height;
+        jobject rect2 = env->NewObject(rectClass, constructor, (int) obj2.x, (int) obj2.y,
+                                       (int) (obj2.x + obj2.width),
+                                       (int) (obj2.y + obj2.height));
+        env->SetObjectArrayElement(ret, 1, rect2);
     }
     return ret;
 }

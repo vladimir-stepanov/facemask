@@ -12,12 +12,8 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by hfs on 07.12.2017.
- */
-
 public class HFSDrawingView extends View {
-    private static final float scale = 2.0f;
+    public static float scale;
     private List<Rect> mObjects;
     private Paint mPaint;
 
@@ -57,7 +53,7 @@ public class HFSDrawingView extends View {
         mObjects = new ArrayList<>();
         mPaint = new Paint();
         mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeWidth(20.0f);
+        mPaint.setStrokeWidth(10.0f);
         mPaint.setColor(Color.RED);
     }
 

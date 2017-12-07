@@ -60,10 +60,6 @@ import java.util.concurrent.TimeUnit;
 
 import static android.Manifest.permission.CAMERA;
 
-/**
- * Created by hfs on 30.11.2017.
- */
-
 public class HFSInstructionActivity extends AppCompatActivity
         implements HFSInstructionHintView.HFSHintViewClickListener,
         HFSControlView.HFSControlViewListener,
@@ -187,6 +183,7 @@ public class HFSInstructionActivity extends AppCompatActivity
         // Pick the smallest of those, assuming we found any
         if (bigEnough.size() > 0) {
             final Size chosenSize = Collections.min(bigEnough, new CompareSizesByArea());
+            HFSDrawingView.scale = (float) screen_height / (float) chosenSize.getWidth() / HFSOnGetImageListener.scale;
             return chosenSize;
         } else {
             return choices[0];
