@@ -149,9 +149,9 @@ public class HFSOnGetImageListener implements ImageReader.OnImageAvailableListen
                     @Override
                     public void run() {
                         if (sRectList.isEmpty()) {
-                            Rect rect = new Rect(40, 40, 60, 60);
+                            Rect rect = new Rect(40, 60, 60, 90);
                             sRectList.add(rect);
-                            rect = new Rect(120, 140, 140, 160);
+                            rect = new Rect(100, 140, 130, 160);
                             sRectList.add(rect);
                             HFSObjectTracker.initTracker(mCroppedBitmap, sRectList);
                         } else {

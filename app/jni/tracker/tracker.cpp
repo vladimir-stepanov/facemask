@@ -143,7 +143,7 @@ TRACKER_JNI_METHOD(jniInit)(JNIEnv *env, jobject thisObj, jobject bitmap, jintAr
     obj2.width = rectNative[6];
     obj2.height = rectNative[7];
 
-    LOG(INFO) << "Init tracker";
+//    LOG(INFO) << "Init tracker";
 
     jniutils::ConvertBitmapToRGBAMat(env, bitmap, rgbaMat, true);
     cv::cvtColor(rgbaMat, bgrMat, cv::COLOR_RGB2BGR);
@@ -180,17 +180,17 @@ TRACKER_JNI_METHOD(jniDetect)(JNIEnv *env, jobject thisObj, jobject bitmap) {
     jmethodID constructor = env->GetMethodID(rectClass, "<init>", "(IIII)V");
 
     if (!objIsFound) {
-        LOG(INFO) << "Tracking object has been lost";
+//        LOG(INFO) << "Tracking object has been lost";
         ret = (jobjectArray) env->NewObjectArray(0, rectClass, JAVA_NULL);
     } else {
-        LOG(INFO) << "Tracking object has been found";
+//        LOG(INFO) << "Tracking object has been found";
         ret = (jobjectArray) env->NewObjectArray(2, rectClass, JAVA_NULL);
-        LOG(INFO) << "Found 1 rect " << obj1.x << ", " << obj1.y << ", " << obj1.width << ", " << obj1.height;
+//        LOG(INFO) << "Found 1 rect " << obj1.x << ", " << obj1.y << ", " << obj1.width << ", " << obj1.height;
         jobject rect1 = env->NewObject(rectClass, constructor, (int) obj1.x, (int) obj1.y,
                                        (int) (obj1.x + obj1.width),
                                        (int) (obj1.y + obj1.height));
         env->SetObjectArrayElement(ret, 0, rect1);
-        LOG(INFO) << "Found 2 rect " << obj2.x << ", " << obj2.y << ", " << obj2.width << ", " << obj2.height;
+//        LOG(INFO) << "Found 2 rect " << obj2.x << ", " << obj2.y << ", " << obj2.width << ", " << obj2.height;
         jobject rect2 = env->NewObject(rectClass, constructor, (int) obj2.x, (int) obj2.y,
                                        (int) (obj2.x + obj2.width),
                                        (int) (obj2.y + obj2.height));
