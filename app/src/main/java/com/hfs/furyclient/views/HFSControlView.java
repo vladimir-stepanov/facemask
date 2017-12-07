@@ -10,7 +10,7 @@ import android.widget.RelativeLayout;
 import com.hfs.furyclient.R;
 
 /**
- * Created by ekate on 01.12.2017.
+ * Created by hfs on 01.12.2017.
  */
 
 public class HFSControlView extends RelativeLayout implements View.OnClickListener {

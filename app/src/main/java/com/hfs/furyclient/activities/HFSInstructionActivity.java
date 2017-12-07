@@ -42,6 +42,7 @@ import com.hfs.furyclient.opencv.HFSObjTracker;
 import com.hfs.furyclient.utils.HFSObjectTracker;
 import com.hfs.furyclient.utils.HFSOnGetImageListener;
 import com.hfs.furyclient.views.HFSControlView;
+import com.hfs.furyclient.views.HFSDrawingView;
 import com.hfs.furyclient.views.HFSInstructionHintView;
 
 import java.io.BufferedReader;
@@ -58,6 +59,10 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import static android.Manifest.permission.CAMERA;
+
+/**
+ * Created by hfs on 30.11.2017.
+ */
 
 public class HFSInstructionActivity extends AppCompatActivity
         implements HFSInstructionHintView.HFSHintViewClickListener,
@@ -156,6 +161,7 @@ public class HFSInstructionActivity extends AppCompatActivity
                 }
             };
     private HFSObjTracker mObjTracker;
+    private HFSDrawingView mDrawingView;
 
     private static Size chooseOptimalSize(Context context, Size[] choices) {
         // Collect the supported resolutions that are at least as big as the preview Surface
@@ -202,6 +208,7 @@ public class HFSInstructionActivity extends AppCompatActivity
         mTextureView = (TextureView) findViewById(R.id.texture);
         mControlView = findViewById(R.id.instruction_control_view);
         mControlView.setListener(this);
+        mDrawingView = findViewById(R.id.instruction_drawing_view);
     }
 
     @Override
@@ -275,7 +282,7 @@ public class HFSInstructionActivity extends AppCompatActivity
             mHintView.setListener(this);
             loadStep(mInstruction.getCurrentStepId());
             startListenToCamera();
-            mOnGetPreviewListener.initialize(this, mInferenceHandler);
+            mOnGetPreviewListener.initialize(this, mInferenceHandler, mDrawingView);
         } else {
             Toast.makeText(this, "Instruction is null!", Toast.LENGTH_SHORT).show();
             finish();
@@ -516,6 +523,7 @@ public class HFSInstructionActivity extends AppCompatActivity
 
     /**
      * Configures the transform.
+     *
      * @param viewWidth
      * @param viewHeight
      */
@@ -604,7 +612,6 @@ public class HFSInstructionActivity extends AppCompatActivity
     @Override
     public void OnArHintClick() {
         loadArHint(mInstruction.getCurrentStepId() - 1);
-//        mCameraFragment.onTakePhotoPressed();
         HTTPAsyncTask getTask = new HTTPAsyncTask();
         try {
             getTask.execute(Server_URL).get();

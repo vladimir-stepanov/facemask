@@ -16,6 +16,11 @@
 
     </FrameLayout>
 
+    <com.hfs.furyclient.views.HFSDrawingView
+        android:id="@+id/instruction_drawing_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <com.hfs.furyclient.views.HFSControlView
         android:id="@+id/instruction_control_view"
         android:layout_width="match_parent"
