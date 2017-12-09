@@ -20,4 +20,6 @@
     <color name="disabledRedButtonBackgroundColor">#775E5E5E</color>
     <color name="redButtonBackgroundColor">#A30000</color>
     <color name="pressedRedButtonBackgroundColor">#B70000</color>
+
+    <color name="hintArrowColor">#0042A5</color>
 </resources>

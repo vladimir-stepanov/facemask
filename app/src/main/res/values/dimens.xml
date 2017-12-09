@@ -11,6 +11,7 @@
     <dimen name="button_padding">7dip</dimen>
     <dimen name="button_margin">7dip</dimen>
 
-    <dimen name="close_button_size">30dip</dimen>
+    <dimen name="close_button_size">45dip</dimen>
+    <dimen name="detect_button_width">90dip</dimen>
     <dimen name="step_button_size">45dip</dimen>
 </resources>

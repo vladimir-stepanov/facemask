@@ -3,9 +3,11 @@ package com.hfs.furyclient.activities;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
@@ -26,6 +28,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Size;
 import android.view.Display;
@@ -39,17 +42,21 @@ import android.widget.Toast;
 import com.hfs.furyclient.R;
 import com.hfs.furyclient.data.HFSInstruction;
 import com.hfs.furyclient.opencv.HFSObjTracker;
+import com.hfs.furyclient.utils.DetectedObject;
 import com.hfs.furyclient.utils.HFSObjectTracker;
 import com.hfs.furyclient.utils.HFSOnGetImageListener;
+import com.hfs.furyclient.utils.Utilities;
 import com.hfs.furyclient.views.HFSControlView;
 import com.hfs.furyclient.views.HFSDrawingView;
 import com.hfs.furyclient.views.HFSInstructionHintView;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,19 +64,30 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import static android.Manifest.permission.CAMERA;
+
+/**
+ * Created by hfs on 30.11.2017.
+ */
 
 public class HFSInstructionActivity extends AppCompatActivity
         implements HFSInstructionHintView.HFSHintViewClickListener,
         HFSControlView.HFSControlViewListener,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        HFSOnGetImageListener.TrackerFocusListener {
     public static final String EXTRA_HFS_INSTRUCTION = "com.hfs.furyclient.EXTRA_HFS_INSTRUCTION";
-    public static final String Server_URL = "http://82.202.212.217/detect";
-    public static final int READ_TIMEOUT = 15000;
-    public static final int CONNECT_TIMEOUT = 15000;
-    public static final String REQUEST_METHOD = "POST";
-
+    public static final String Server_URL = "http://82.202.212.217/detect_lamp";
     private static final int REQUEST_CODE_CAMERA_PERMISSIONS = 1;
     private static final int MINIMUM_CAMERA_PREVIEW_SIZE = 300;
     private final HFSOnGetImageListener mOnGetPreviewListener = new HFSOnGetImageListener();
@@ -87,29 +105,6 @@ public class HFSInstructionActivity extends AppCompatActivity
                         @NonNull final CameraCaptureSession session,
                         @NonNull final CaptureRequest request,
                         @NonNull final TotalCaptureResult result) {
-                }
-            };
-    private final TextureView.SurfaceTextureListener mSurfaceTextureListener =
-            new TextureView.SurfaceTextureListener() {
-                @Override
-                public void onSurfaceTextureAvailable(
-                        final SurfaceTexture texture, final int width, final int height) {
-                    openCamera(width, height);
-                }
-
-                @Override
-                public void onSurfaceTextureSizeChanged(
-                        final SurfaceTexture texture, final int width, final int height) {
-                    configureTransform(width, height);
-                }
-
-                @Override
-                public boolean onSurfaceTextureDestroyed(final SurfaceTexture texture) {
-                    return true;
-                }
-
-                @Override
-                public void onSurfaceTextureUpdated(final SurfaceTexture texture) {
                 }
             };
     private final Semaphore mCameraOpenCloseLock = new Semaphore(1);
@@ -154,6 +149,29 @@ public class HFSInstructionActivity extends AppCompatActivity
                     cd.close();
                     mCameraDevice = null;
                     finish();
+                }
+            };
+    private final TextureView.SurfaceTextureListener mSurfaceTextureListener =
+            new TextureView.SurfaceTextureListener() {
+                @Override
+                public void onSurfaceTextureAvailable(
+                        final SurfaceTexture texture, final int width, final int height) {
+                    openCamera(width, height);
+                }
+
+                @Override
+                public void onSurfaceTextureSizeChanged(
+                        final SurfaceTexture texture, final int width, final int height) {
+                    configureTransform(width, height);
+                }
+
+                @Override
+                public boolean onSurfaceTextureDestroyed(final SurfaceTexture texture) {
+                    return true;
+                }
+
+                @Override
+                public void onSurfaceTextureUpdated(final SurfaceTexture texture) {
                 }
             };
     private HFSObjTracker mObjTracker;
@@ -278,8 +296,9 @@ public class HFSInstructionActivity extends AppCompatActivity
             }
             mHintView.setListener(this);
             loadStep(mInstruction.getCurrentStepId());
+            // TODO: move next two lines to smthng like 'on server response'
             startListenToCamera();
-            mOnGetPreviewListener.initialize(this, mInferenceHandler, mDrawingView);
+            mOnGetPreviewListener.initialize(this, mInferenceHandler, mDrawingView, null);
         } else {
             Toast.makeText(this, "Instruction is null!", Toast.LENGTH_SHORT).show();
             finish();
@@ -341,6 +360,7 @@ public class HFSInstructionActivity extends AppCompatActivity
             mControlView.enablePrevious(id > 0);
         }
         updateHint();
+        mOnGetPreviewListener.setOperational(true);
     }
 
     /**
@@ -598,23 +618,26 @@ public class HFSInstructionActivity extends AppCompatActivity
 
     @Override
     public void OnNextStepClick() {
+        mOnGetPreviewListener.initialize(this, mInferenceHandler, mDrawingView, null);
         loadStep(mInstruction.getCurrentStepId() + 1);
     }
 
     @Override
     public void OnPreviousStepClick() {
+
+        mOnGetPreviewListener.initialize(this, mInferenceHandler, mDrawingView, null);
         loadStep(mInstruction.getCurrentStepId() - 1);
     }
 
     @Override
     public void OnArHintClick() {
         loadArHint(mInstruction.getCurrentStepId() - 1);
-        HTTPAsyncTask getTask = new HTTPAsyncTask();
-        try {
-            getTask.execute(Server_URL).get();
-        } catch (Exception ex) {
+        detect();
+    }
 
-        }
+    @Override
+    public void onObjectsLosted() {
+        detect();
     }
 
     /**
@@ -629,44 +652,103 @@ public class HFSInstructionActivity extends AppCompatActivity
         }
     }
 
-    public class HTTPAsyncTask extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... urls) {
-            String strUrl = urls[0];
-            String line;
-            String result;
-            try {
-                URL url = new URL(strUrl);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod(REQUEST_METHOD);
-                connection.setReadTimeout(READ_TIMEOUT);
-                connection.setConnectTimeout(CONNECT_TIMEOUT);
-
-                InputStreamReader isr = new InputStreamReader(connection.getInputStream());
-                BufferedReader br = new BufferedReader(isr);
-                StringBuilder stringBuilder = new StringBuilder();
-                while ((line = br.readLine()) != null) {
-                    stringBuilder.append(line);
-                }
-                br.close();
-                isr.close();
-                result = stringBuilder.toString();
-                connection.connect();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
+    private void detect() {
+        if(mOnGetPreviewListener.mCroppedBitmap != null) {
+            try{
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                mOnGetPreviewListener.mCroppedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                byte[] byteArray = stream.toByteArray();
+                post(Server_URL, byteArray);
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
-            return result;
-        }
-
-        // onPostExecute displays the results of the AsyncTask.
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
         }
     }
 
+    private void showAlert() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(HFSInstructionActivity.this);
+        builder.setTitle(R.string.alert_title)
+                .setMessage(R.string.alert_msg)
+                .setCancelable(false)
+                .setPositiveButton(R.string.button_ok, null);
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    void post (String postUrl, byte [] postBody) throws IOException {
+
+        MediaType MEDIA_TYPE_JPG = MediaType.parse("image/jpg");
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.connectTimeout(30, TimeUnit.SECONDS);
+        builder.readTimeout(30, TimeUnit.SECONDS);
+        builder.writeTimeout(30, TimeUnit.SECONDS);
+        OkHttpClient client = builder.build();
+        RequestBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM).addFormDataPart(
+                        "img", "photo", RequestBody.create(MEDIA_TYPE_JPG, postBody))
+                .build();
+
+        Request request = new Request.Builder().url(postUrl).post(body).build();
+        Call call = client.newCall(request);
+
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, final IOException e) {
+                e.printStackTrace();
+                HFSInstructionActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(HFSInstructionActivity.this,
+                                e.getMessage().toString(), Toast.LENGTH_SHORT)
+                            .show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+                if(response.isSuccessful()) {
+                    System.out.println(response);
+                    final String resp = response.body().string();
+                    //final String debugResp = "{ \"status_code\": 100, \"detected_objects\": [ { \"class_name\": \"bar\", \"bounding_box\": { \"y\": 10.01953125, \"x\": 10.165283203125, \"w\": 50.0528259277344, \"h\": 50.9102783203125 } }, { \"class_name\": \"base_top\", \"bounding_box\": { \"y\": 200.6915283203125, \"x\": 200.097412109375, \"w\": 50.0380554199219, \"h\": 50.7102355957031 } }, { \"class_name\": \"plafond\", \"bounding_box\": { \"y\": 1148.1287841796875, \"x\": 555.243408203125, \"w\": 260.3699035644531, \"h\": 227.62155151367188 } }, { \"class_name\": \"base_bottom\", \"bounding_box\": { \"y\": 1533.3231201171875, \"x\": 2485.0751953125, \"w\": 390.766357421875, \"h\": 378.9221496582031 } } ] }";
+                    // get List objects from JSON
+                    HFSInstructionActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            final ArrayList<DetectedObject> objects = Utilities.getObjectsFromJSON(resp);
+                            ArrayList<String> detectList = new ArrayList<String>();
+                            for(DetectedObject object :objects) {
+                                detectList.add(object.getClassName());
+                            }
+                            ArrayList<String> instructedObj = mInstruction.getCurrentStep().details;
+                            if (detectList.containsAll(instructedObj)) {
+                                List<Rect> detectedRects = new ArrayList<>();
+                                if (objects != null && objects.size() >= 2) {
+                                    for (int i = 0; i < 3; i++) {
+                                        DetectedObject o = objects.get(i);
+                                        double left = o.getX();
+                                        double top = o.getY();
+                                        double right = o.getX() + o.getW();
+                                        double bottom = o.getY() + o.getH();
+                                        detectedRects.add(new Rect((int)left ,(int)top, (int)right, (int)bottom));
+                                    }
+                                }
+                                mOnGetPreviewListener.initialize(HFSInstructionActivity.this, mInferenceHandler, mDrawingView, detectedRects);
+                                Toast.makeText(HFSInstructionActivity.this, "Detected objects count: " + objects.size(), Toast.LENGTH_SHORT).show();
+                            } else {
+                                showAlert();
+                            }
+
+                        }
+                    });
+
+                } else {
+                    System.out.println("NotSuccess");
+                }
+            }
+        });
+    }
+
     // endregion
-
-
 }

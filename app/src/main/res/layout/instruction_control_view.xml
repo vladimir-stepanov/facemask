@@ -18,10 +18,10 @@
     <ImageView
         android:id="@+id/instruction_button_ar_hint"
         style="@style/HFSBlueButtonStyle"
-        android:layout_width="@dimen/close_button_size"
+        android:layout_width="@dimen/detect_button_width"
         android:layout_height="@dimen/close_button_size"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
         android:clickable="true"
         android:focusable="true"
         android:src="@drawable/ic_question_mark" />

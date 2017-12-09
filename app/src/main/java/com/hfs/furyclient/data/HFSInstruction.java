@@ -116,10 +116,12 @@ public class HFSInstruction implements Parcelable {
          * The step hint.
          */
         public String hint;
+        public ArrayList<String> details;
 
         public Step(Parcel parcel) {
             id = parcel.readInt();
             hint = parcel.readString();
+            details = parcel.createStringArrayList();
         }
 
         @Override
@@ -131,6 +133,7 @@ public class HFSInstruction implements Parcelable {
         public void writeToParcel(Parcel parcel, int i) {
             parcel.writeInt(id);
             parcel.writeString(hint);
+            parcel.writeStringList(details);
         }
     }
 }

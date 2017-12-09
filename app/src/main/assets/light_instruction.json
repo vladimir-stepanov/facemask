@@ -3,15 +3,18 @@
   "steps": [
     {
       "id": 1,
-      "hint": "This is the first step for instruction 'Light'"
+      "details": ["base_top"],
+      "hint": "Place the lamp parts on the table.\n Press '?' button to detect."
     },
     {
       "id": 2,
-      "hint": "This is the second step for instruction 'Light'"
+      "details": ["pin", "base_top"],
+      "hint": "Take the metal pin and insert it into the base."
     },
     {
       "id": 3,
-      "hint": "This is the third step for instruction 'Light'"
+      "details": ["pin", "base_bottom"],
+      "hint": "Take base bottom detail and insert it on the pin."
     }
   ]
 }

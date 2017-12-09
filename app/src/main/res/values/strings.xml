@@ -3,6 +3,8 @@
     <string name="splash_text">Harman\nFurious Services</string>
     <string name="instructions_text">Instructions</string>
     <string name="got_it_text">Got it!</string>
-
+    <string name="alert_title">Please detect!</string>
+    <string name="alert_msg">Not all parts for this step was found. Please, try to detect again.</string>
+    <string name="button_ok">OK</string>
     <string name="isntruction_completed_text">Congratulations!\nYou\'ve just completed the instruction \'%1$s\'</string>
 </resources>
